@@ -1,0 +1,19 @@
+{
+  "name": "V-Shape Pro · Allenamento",
+  "short_name": "V-Shape Pro",
+  "description": "Diario allenamenti, calendario e progressi ipertrofia",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "it",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
