@@ -614,7 +614,7 @@ async function spCheckAtStartup(){
  if(!(spGet('access')||spGet('refresh'))||spPromptDismissed)return;
  try{
   const data=await spApi('me/player/devices');
-  if(!data?.devices?.length)spShowStartupPrompt();
+  if(!data?.devices?.some(d=>d.is_active)&&!state.active)spShowStartupPrompt();
  }catch(e){/* Don't interrupt workouts on API, connectivity, or authorization errors. */}
 }
 
@@ -708,8 +708,8 @@ function showStartupFallback(error){
 Promise.resolve().then(()=>spAuthCallback()).then(handled=>{
  if(!handled)home();
  if(spGet('access')||spGet('refresh')){
-  spAccess().then(()=>spAutoRefresh()).catch(e=>console.warn('Spotify auto renewal:',e.message));
+  spAccess().then(()=>{spAutoRefresh();if(!handled)spCheckAtStartup()}).catch(e=>console.warn('Spotify auto renewal:',e.message));
  }
- // Never interrupt a workout with a Spotify device prompt.
+ // The Spotify availability prompt is skipped while a workout is in progress.
 }).catch(showStartupFallback);
 </script></body></html>
