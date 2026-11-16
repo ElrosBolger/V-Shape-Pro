@@ -438,7 +438,7 @@ async function spLoad(){
  if(!spGet('access')){spMessage='Collega Spotify per visualizzare musica e dispositivi.';musicView();return}
  const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices'),spApi('me/playlists?limit=30')]);
  const [playback,devices,playlists]=results;
- if(playback.status==='fulfilled'){spCurrent=playback.value;spProgressAt=Date.now();}
+ if(playback.status==='fulfilled'){spCurrent=playback.value;spProgressAt=Date.now();spUpdateMini();}
  if(devices.status==='fulfilled')spDevices=devices.value?.devices||[];
  if(playlists.status==='fulfilled')spPlaylists=playlists.value?.items||[];
  const failures=results.map((v,i)=>v.status==='rejected'&&!(i===2&&/not found|404/i.test(v.reason?.message||''))?['Riproduzione','Dispositivi','Playlist'][i]+': '+v.reason.message:null).filter(Boolean);
@@ -466,11 +466,14 @@ function spVolume(v){
 }
 function spTime(ms){const t=Math.max(0,Math.floor((Number(ms)||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 let spProgressAt=Date.now();
+let spSeekPendingUntil=0;
+function spSeekPreview(v){const el=document.getElementById('sp-elapsed');if(el)el.textContent=spTime(v)}
 async function spSeek(v){
  const duration=Number(spCurrent?.item?.duration_ms)||0;
  if(!duration)return;
  const ms=Math.max(0,Math.min(duration,Number(v)||0));
- try{await spApi('me/player/seek?position_ms='+Math.round(ms),'PUT');spCurrent.progress_ms=ms;spProgressAt=Date.now();spMessage='';musicView()}
+ spCurrent.progress_ms=ms;spProgressAt=Date.now();spSeekPendingUntil=Date.now()+2500;spSeekPreview(ms);spUpdateMini();
+ try{await spApi('me/player/seek?position_ms='+Math.round(ms),'PUT');spMessage='';spSeekPendingUntil=Date.now()+1000;spAutoRefresh()}
  catch(e){spMessage='Impossibile spostare il brano: '+(e?.message||'comando non disponibile');musicView()}
 }
 function spTickProgress(){
@@ -482,6 +485,25 @@ function spTickProgress(){
  const elapsed=document.getElementById('sp-elapsed');if(elapsed)elapsed.textContent=spTime(progress);
 }
 setInterval(spTickProgress,1000);
+function spUpdateMini(){
+ let bar=document.getElementById('sp-mini');
+ if(!bar){bar=document.createElement('aside');bar.id='sp-mini';bar.className='sp-mini';document.body.appendChild(bar)}
+ const item=spCurrent?.item;
+ if(!spGet('access')||!item||!spCurrent?.is_playing){bar.hidden=true;document.body.classList.remove('sp-mini-visible');return}
+ bar.hidden=false;document.body.classList.add('sp-mini-visible');
+ const art=item.album?.images?.[2]?.url||item.album?.images?.[1]?.url||'';
+ const signature=[item.id,spCurrent.is_playing,art].join('|');
+ if(bar.dataset.signature===signature)return;
+ bar.dataset.signature=signature;
+ bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'pause\')" aria-label="Pausa">⏸</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
+}
+async function spQuickControl(action){
+ if(!spCurrent)return;
+ if(action==='pause'){spCurrent.is_playing=false;spUpdateMini()}
+ try{await spApi('me/player/'+action,action==='next'?'POST':'PUT');await spAutoRefresh()}
+ catch(e){spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
+}
+setInterval(()=>{if(spGet('access')&&!document.hidden)spUpdateMini()},1500);
 async function spPauseOnFinish(){
  if(!spGet('access'))return;
  try{await spApi('me/player/pause','PUT')}catch(e){console.warn('Spotify: pausa non disponibile',e)}
@@ -505,6 +527,7 @@ function spLogout(){spClear();spCurrent=null;spPlaylists=[];spDevices=[];spMessa
 function musicView(){
  spEnsureAutoRefresh();
  spLastSignature=spSignature();
+ spUpdateMini();
  const connected=!!spGet('access');
  const item=spCurrent?.item;
  const name=spEscape(item?.name||'Nessun brano attivo');
@@ -517,7 +540,7 @@ function musicView(){
  (!connected?'<p>Collega il tuo account Premium per controllare la riproduzione sui dispositivi Spotify Connect compatibili.</p><button class="btn primary wide" onclick="spLogin()">Collega Spotify</button>':
  '<div class="row" style="align-items:center;gap:14px;margin:14px 0">'+(art?'<img src="'+spEscape(art)+'" alt="Copertina album" style="width:76px;height:76px;border-radius:12px">':'<span style="font-size:44px">🎵</span>')+
  '<div style="min-width:0"><b>'+name+'</b><div class="small muted">'+artist+'</div><div class="small muted">'+spEscape(device?.name||'Nessun dispositivo attivo')+'</div></div></div>'+
- '<p class="small muted" style="margin:14px 0 4px">Posizione del brano</p><input id="sp-seek" type="range" min="0" max="'+(Number(item?.duration_ms)||1)+'" value="'+Math.min(Number(item?.duration_ms)||1,Number(spCurrent?.progress_ms)||0)+'" '+(!item?.duration_ms?'disabled':'')+' oninput="document.getElementById(\'sp-elapsed\').textContent=spTime(this.value)" onchange="spSeek(this.value)" aria-label="Posizione del brano"><div class="row spread small muted"><span id="sp-elapsed">'+spTime(spCurrent?.progress_ms)+'</span><span>'+spTime(item?.duration_ms)+'</span></div>'+
+ '<p class="small muted" style="margin:14px 0 4px">Posizione del brano</p><input id="sp-seek" type="range" min="0" max="'+(Number(item?.duration_ms)||1)+'" value="'+Math.min(Number(item?.duration_ms)||1,Number(spCurrent?.progress_ms)||0)+'" '+(!item?.duration_ms?'disabled':'')+' oninput="spSeekPreview(this.value)" onchange="spSeek(this.value)" aria-label="Posizione del brano"><div class="row spread small muted"><span id="sp-elapsed">'+spTime(spCurrent?.progress_ms)+'</span><span>'+spTime(item?.duration_ms)+'</span></div>'+
  '<div class="row" style="justify-content:center;flex-wrap:wrap"><button class="btn" onclick="spControl(\'me/player/previous\',\'POST\')">⏮</button><button class="btn primary" onclick="spControl(\'me/player/'+(spCurrent?.is_playing?'pause':'play')+'\')">'+(spCurrent?.is_playing?'⏸ Pausa':'▶ Play')+'</button><button class="btn" onclick="spControl(\'me/player/next\',\'POST\')">⏭</button><button class="btn" onclick="spLoad()">↻</button></div>'+
  '<p class="small muted" style="margin-top:14px">Volume Spotify Connect (se supportato)</p><input type="range" min="0" max="100" value="'+(device?.volume_percent??50)+'" '+(!device?.supports_volume?'disabled':'')+' onchange="spVolume(this.value)" aria-label="Volume Spotify">'+
  (!device?.supports_volume?'<p class="small muted">Volume remoto non disponibile su questo dispositivo: usa i tasti del Pixel o i controlli Bluetooth.</p>':'')+
@@ -547,15 +570,15 @@ function spEnsureAutoRefresh(){
  spTimer=setInterval(spAutoRefresh,7000);
 }
 async function spAutoRefresh(){
- if(spPolling||document.hidden||!document.getElementById('spotify-panel')||!spGet('access'))return;
+ if(spPolling||document.hidden||!spGet('access'))return;
  if(document.activeElement?.matches('#spotify-panel input, #spotify-panel select'))return;
  spPolling=true;
  try{
   const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices')]);
-  if(results[0].status==='fulfilled'){spCurrent=results[0].value;spProgressAt=Date.now();}
+  if(results[0].status==='fulfilled'&&Date.now()>spSeekPendingUntil){spCurrent=results[0].value;spProgressAt=Date.now();spUpdateMini();}
   if(results[1].status==='fulfilled')spDevices=results[1].value?.devices||[];
   const next=spSignature();
-  if(next!==spLastSignature){
+  if(document.getElementById('spotify-panel')&&next!==spLastSignature){
    spLastSignature=next;
    const position=window.scrollY;
    musicView();
@@ -654,6 +677,10 @@ function appGoBack(){
   }finally{restoring=false}
  });
 })();
+spEnsureAutoRefresh();
+const spMiniCss=document.createElement('style');
+spMiniCss.textContent='.sp-mini{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:8px;background:linear-gradient(120deg,#251b46,#14112d);border:1px solid #7454b5;border-radius:18px;box-shadow:0 10px 40px #0009;z-index:1500}.sp-mini[hidden]{display:none}.sp-mini-open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;color:#fff;text-align:left}.sp-mini-open img{width:42px;height:42px;object-fit:cover;border-radius:9px}.sp-mini-label{display:flex;flex-direction:column;min-width:0}.sp-mini-label b,.sp-mini-label small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sp-mini-label small{color:#c6b9e8}.sp-mini-action{border:0;background:#6e50b3;color:white;border-radius:11px;min-width:43px;min-height:43px;font-size:21px}.sp-mini-visible .wrap{padding-bottom:110px}';
+document.head.appendChild(spMiniCss);
 /* Keep the app usable if Spotify OAuth fails or browser storage is restricted. */
 function showStartupFallback(error){
  console.error('V-Shape Pro startup:',error);
