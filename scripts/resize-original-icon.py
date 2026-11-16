@@ -11,10 +11,13 @@ source = Image.open(root / "icon-512.png").convert("RGB")
 assert source.size == (512, 512)
 # The silver V and central light are the essential symbol. Measure their radial
 # extent rather than shrinking the entire square into the safe circle.
-def is_silver(pixel):
-    r,g,b = pixel
-    return min(r,g,b) >= 150
-silver = [(x,y) for y in range(512) for x in range(512) if is_silver(source.getpixel((x,y)))]
+def is_core_silver(x, y, side, pixel):
+    # Only classify the V and its central flare, excluding the decorative outer rim.
+    # This selection is for measurement only; the full original bitmap is preserved.
+    u, v = (x + .5) / side, (y + .5) / side
+    core = (.055 <= u <= .945 and .20 <= v <= .90) or (.45 <= u <= .55 and .02 <= v < .20)
+    return core and min(pixel) >= 150
+silver = [(x,y) for y in range(512) for x in range(512) if is_core_silver(x,y,512,source.getpixel((x,y)))]
 assert len(silver) > 1000
 radius = max(math.hypot(x + .5 - 256, y + .5 - 256) for x,y in silver) / 512
 scale = min(.80, .385 / radius)
@@ -29,7 +32,7 @@ for size in (192, 512):
     target.paste(artwork, (offset, offset))
     # Keep the full bitmap and prove there is no clipping or duplication.
     assert target.crop((offset, offset, offset+inner, offset+inner)).tobytes() == artwork.tobytes()
-    bright = [(x,y) for y in range(size) for x in range(size) if is_silver(target.getpixel((x,y)))]
+    bright = [(x+offset,y+offset) for y in range(inner) for x in range(inner) if is_core_silver(x,y,inner,artwork.getpixel((x,y)))]
     max_radius = max(math.hypot(x+.5-size/2, y+.5-size/2) for x,y in bright)
     assert max_radius <= size * .4, (size, max_radius, size*.4)
     name = f"icon-maskable-v2-{size}.png"
