@@ -1,12 +1,12 @@
 {
-  "name": "V-Shape Pro · Allenamento",
-  "short_name": "V-Shape Pro",
-  "description": "Diario allenamenti, calendario e progressi ipertrofia",
+  "name": "V-SHAPE · System Ascension",
+  "short_name": "V-SHAPE",
+  "description": "Sistema di allenamento, diario e progressione in 8 settimane",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
+  "background_color": "#070510",
+  "theme_color": "#070510",
   "lang": "it",
   "icons": [
     {
