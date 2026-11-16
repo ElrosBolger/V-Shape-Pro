@@ -58,8 +58,8 @@ let ticker=null;function restView(){clearInterval(ticker);let a=state.active;if(
 function adjustRest(n){state.active.restEnd=Math.max(Date.now(),state.active.restEnd+n*1000);save();restView()}
 function endRest(){clearInterval(ticker);state.active.stage='train';state.active.restEnd=null;save();trainView()}
 function coolView(){let a=state.active,d=days[a.day];app.innerHTML=header('Allenamento completato!','Ottimo. Ora puoi fare qualche minuto di stretching leggero.')+`<div class="card"><h2>Stretching facoltativo · 3–5 min</h2><p class="subtle">Mantieni ogni posizione con una tensione lieve, senza dolore e senza rimbalzi. La flessibilità migliora con costanza, non forzando.</p>${d.cool.map(x=>`<div class="exercise"><strong>${esc(x[0])} · ${x[1]} s circa</strong><div class="small">${esc(x[2])}</div></div>`).join('')}<button class="btn primary wide" onclick="complete()">Salva allenamento ✓</button></div>`}
-function complete(){let a=state.active;if(!a)return;state.records.push({date:new Date().toISOString(),day:a.day,week:a.week,started:a.started,entries:a.entries});state.active=null;save();app.innerHTML=header('Seduta salvata','Il diario conserva carichi e ripetizioni sul dispositivo.')+`<div class="card"><h2 class="check">✓ Allenamento registrato</h2><p>Hai registrato ${a.entries.length} serie allenanti.</p><button class="btn primary wide" onclick="home()">Torna al programma</button></div>`}
-function abandon(){if(confirm('Interrompere e perdere le serie di questa seduta?')){state.active=null;clearInterval(ticker);save();home()}}
+function complete(){let a=state.active;if(!a)return;spPauseOnFinish();state.records.push({date:new Date().toISOString(),day:a.day,week:a.week,started:a.started,entries:a.entries});state.active=null;save();app.innerHTML=header('Seduta salvata','Il diario conserva carichi e ripetizioni sul dispositivo.')+`<div class="card"><h2 class="check">✓ Allenamento registrato</h2><p>Hai registrato ${a.entries.length} serie allenanti.</p><button class="btn primary wide" onclick="home()">Torna al programma</button></div>`}
+function abandon(){if(confirm('Interrompere e perdere le serie di questa seduta?')){spPauseOnFinish();state.active=null;clearInterval(ticker);save();home()}}
 function historyView(){let list=[...state.records].reverse();app.innerHTML=header('Diario allenamenti','Progressi registrati localmente in questo browser.')+`<div class="row"><button class="btn" onclick="exportCSV()">Esporta CSV</button><button class="btn" onclick="exportJSON()">Backup JSON</button></div>`+(list.length?list.map((r,i)=>`<details class="card"><summary><b>${esc(r.day)} · ${new Date(r.date).toLocaleDateString('it-IT')}</b> <span class="muted">· sett. ${r.week} · ${r.entries.length} serie</span></summary>${r.entries.map(x=>`<div class="exercise"><strong>${esc(x.exercise)}</strong><div class="small">${esc(x.kg)} kg · ${x.reps} rip · RIR ${esc(x.rir)}</div></div>`).join('')}</details>`).join(''):`<div class="card">Nessuna seduta salvata. Completa il primo allenamento per iniziare il diario.</div>`)}
 function settingsView(){let m=state.measurements;app.innerHTML=header('Dati e sicurezza','Misure facoltative per monitorare le proporzioni.')+`<div class="card"><div class="grid">${[['weight','Peso (kg)'],['waist','Vita (cm)'],['chest','Torace (cm)'],['shoulders','Spalle (cm)']].map(([k,v])=>`<div><label>${v}</label><input id="m_${k}" inputmode="decimal" value="${esc(m[k]||'')}" placeholder="—"></div>`).join('')}</div><button class="btn primary wide" style="margin-top:12px" onclick="saveMeasures()">Salva misure</button></div><div class="card"><h3>Backup e ripristino</h3><p class="subtle">I dati rimangono solo nel browser: se cancelli i dati del sito o apri il file in un altro browser, potrebbero non esserci. Fai periodicamente un backup.</p><div class="row"><button class="btn" onclick="exportJSON()">Esporta JSON</button><label class="btn" style="color:var(--ink);margin:0">Importa JSON<input type="file" accept="application/json,.json" style="display:none" onchange="importJSON(event)"></label></div></div><div class="card"><h3>Come interpretare i carichi</h3><p class="subtle">I pesi iniziali sono riferimenti da te dichiarati, non prescrizioni. Le macchine hanno resistenze diverse. Per la panca guidata registra il carico per lato, mantenendo lo stesso criterio ogni volta.</p><p class="subtle">Evita dolore articolare acuto, movimenti forzati e serie al cedimento sistematico. In caso di sintomi o condizioni mediche, chiedi consiglio a un professionista qualificato.</p></div>`}
 function saveMeasures(){for(let k of ['weight','waist','chest','shoulders'])state.measurements[k]=document.getElementById('m_'+k).value.trim();save();alert('Misure salvate')}
@@ -171,6 +171,25 @@ async function spPlaylist(uri){
  }catch(e){spError(e)}
 }
 function spVolume(v){spControl('me/player/volume?volume_percent='+Math.round(v),'PUT')}
+async function spPauseOnFinish(){
+ if(!spGet('access'))return;
+ try{await spApi('me/player/pause','PUT')}catch(e){console.warn('Spotify: pausa non disponibile',e)}
+}
+async function spPauseAndExit(){
+ const button=document.getElementById('sp-exit-button');
+ if(button){button.disabled=true;button.textContent='Pausa in corso…'}
+ try{
+  if(spGet('access'))await spApi('me/player/pause','PUT');
+  spCurrent=spCurrent?{...spCurrent,is_playing:false}:null;
+  spMessage='Musica in pausa. Puoi chiudere V-Shape Pro dal selettore delle app Android.';
+  home();
+  alert('Spotify in pausa. Puoi chiudere V-Shape Pro.');
+ }catch(e){
+  if(button){button.disabled=false;button.textContent='⏸ Pausa musica ed esci'}
+  spMessage='Non sono riuscito a mettere Spotify in pausa: '+e.message;
+  musicView();
+ }
+}
 function spLogout(){spClear();spCurrent=null;spPlaylists=[];spDevices=[];spMessage='Spotify scollegato da questa PWA.';musicView()}
 function musicView(){
  spEnsureAutoRefresh();
@@ -191,7 +210,7 @@ function musicView(){
  '<p class="small muted" style="margin-top:14px">Volume Spotify Connect (se supportato)</p><input type="range" min="0" max="100" value="'+(device?.volume_percent??50)+'" '+(!device?.supports_volume?'disabled':'')+' onchange="spVolume(this.value)" aria-label="Volume Spotify">'+
  '<p class="small muted">Dispositivo</p><select onchange="if(this.value)spDevice(this.value)"><option value="">Seleziona dispositivo</option>'+spDevices.map(d=>'<option value="'+spEscape(d.id)+'" '+(d.is_active?'selected':'')+'>'+spEscape(d.name)+' ('+spEscape(d.type)+')</option>').join('')+'</select>'+
  '<h3 style="margin-top:20px">Le tue playlist</h3>'+(spPlaylists.length?spPlaylists.filter(p=>p&&p.uri).map(p=>'<div class="row spread" style="margin:8px 0"><span style="flex:1;min-width:0">'+spEscape(p.name)+'</span><button class="btn smallbtn" onclick="spPlaylist(\''+spEscape(p.uri)+'\')">▶</button></div>').join(''):'<p class="muted small">Nessuna playlist disponibile. Apri Spotify per avviare la musica, poi aggiorna.</p>')+
- '<p class="small muted">Tocca ▶ accanto a una playlist per avviarla sul Pixel o sul dispositivo Spotify Connect attivo. Se il telefono non compare, apri Spotify una volta per renderlo disponibile.</p><button class="btn" onclick="spLogout()">Scollega Spotify</button>')+
+ '<p class="small muted">Tocca ▶ accanto a una playlist per avviarla sul Pixel o sul dispositivo Spotify Connect attivo. Se il telefono non compare, apri Spotify una volta per renderlo disponibile.</p><button class="btn primary wide" id="sp-exit-button" onclick="spPauseAndExit()">⏸ Pausa musica ed esci</button><p class="small muted">La chiusura forzata della PWA da Android non può essere rilevata in modo affidabile. Usa questo comando per fermare la musica.</p><button class="btn" onclick="spLogout()">Scollega Spotify</button>')+
  '</div><div class="card"><p>Per associare cuffie Bluetooth e regolare il volume generale, usa i controlli Android. Spotify Premium e le API determinano quali controlli remoti sono disponibili.</p><button class="btn wide" onclick="window.open(\'https://open.spotify.com/\',\'_blank\')">Apri Spotify</button></div>';
 }
 
