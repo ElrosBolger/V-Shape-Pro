@@ -54,7 +54,7 @@ function appNotice(message,title='Controlla i dati'){
 }
 const alert=appNotice;
 function showSetError(message,field){const el=document.getElementById(field);document.querySelectorAll('.vs-field-error').forEach(n=>n.remove());document.querySelectorAll('.vs-invalid').forEach(n=>n.classList.remove('vs-invalid'));if(el){el.classList.add('vs-invalid');const msg=document.createElement('div');msg.className='vs-field-error';msg.setAttribute('role','alert');msg.textContent=message;el.insertAdjacentElement('afterend',msg);el.focus()}else appNotice(message)}
-function validWeight(raw){return /^\\d+(?:[.,]\\d{1,2})?$/.test(raw)&&Number(raw.replace(',','.'))>=0&&Number(raw.replace(',','.'))<=2000}
+function validWeight(raw){return /^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number(raw.replace(',','.'))>=0&&Number(raw.replace(',','.'))<=2000}
 function displayLoad(raw){const v=String(raw??'').trim();return validWeight(v)?v:''}
 
 function toggleAppMenu(){const m=document.getElementById('app-menu'),b=document.getElementById('menu-toggle');m.hidden=!m.hidden;b.setAttribute('aria-expanded',String(!m.hidden))}
