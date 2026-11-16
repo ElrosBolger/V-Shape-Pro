@@ -364,9 +364,25 @@ async function spCheckAtStartup(){
  button.addEventListener('click',()=>window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
  document.body.appendChild(button);
  let pending=false;
- function update(){pending=false;button.classList.toggle('visible',window.scrollY>320)}
- window.addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(update)}},{passive:true});
- update();
+ function update(){
+  pending=false;
+  const rect=button.getBoundingClientRect();
+  const pad=10;
+  const blocked=[...document.querySelectorAll('#app button, #app input, #app select, #app textarea, #app a, #app [role="button"]')]
+   .some(el=>{
+    if(el.closest('.nav')||el.disabled)return false;
+    const r=el.getBoundingClientRect();
+    if(!r.width||!r.height)return false;
+    return rect.left<r.right+pad&&rect.right>r.left-pad&&rect.top<r.bottom+pad&&rect.bottom>r.top-pad;
+   });
+  button.classList.toggle('visible',window.scrollY>320&&!blocked);
+ }
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}
+ window.addEventListener('scroll',schedule,{passive:true});
+ window.addEventListener('resize',schedule,{passive:true});
+ const appRoot=document.getElementById('app');
+ if(appRoot)new MutationObserver(schedule).observe(appRoot,{childList:true,subtree:true});
+ schedule();
 })();
 
 spAuthCallback().then(handled=>{if(!handled)home();spCheckAtStartup()});
