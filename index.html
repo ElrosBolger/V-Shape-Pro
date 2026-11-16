@@ -193,5 +193,25 @@ function musicView(){
  '</div><div class="card"><p>Per associare cuffie Bluetooth e regolare il volume generale, usa i controlli Android. Spotify Premium e le API determinano quali controlli remoti sono disponibili.</p><button class="btn wide" onclick="window.open(\'https://open.spotify.com/\',\'_blank\')">Apri Spotify</button></div>';
 }
 
-spAuthCallback().then(handled=>{if(!handled)home()});
+
+/* Spotify availability prompt: API reports devices, not whether Android app is closed. */
+let spPromptDismissed=false;
+function spPromptClose(){spPromptDismissed=true;document.getElementById('sp-start-prompt')?.remove()}
+function spPromptOpenSpotify(){spPromptClose();window.location.href='https://open.spotify.com/'}
+function spShowStartupPrompt(){
+ if(spPromptDismissed||document.getElementById('sp-start-prompt'))return;
+ const overlay=document.createElement('div');overlay.id='sp-start-prompt';
+ overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:#020813c9;display:flex;align-items:center;justify-content:center;padding:20px';
+ overlay.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="sp-prompt-title" style="background:#172438;border:1px solid #31445d;border-radius:20px;padding:22px;width:100%;max-width:400px;box-shadow:0 16px 60px #0008"><h2 id="sp-prompt-title">🎧 Spotify non disponibile</h2><p>Non rilevo dispositivi Spotify Connect attivi. Apri Spotify sul telefono e avvia un brano per poter controllare la musica da V-Shape Pro.</p><button class="btn primary wide" onclick="spPromptOpenSpotify()">Apri Spotify</button><button class="btn ghost wide" style="margin-top:10px" onclick="spPromptClose()">Continua senza musica</button></div>';
+ document.body.appendChild(overlay);
+}
+async function spCheckAtStartup(){
+ if(!spGet('access')||spPromptDismissed)return;
+ try{
+  const data=await spApi('me/player/devices');
+  if(!data?.devices?.length)spShowStartupPrompt();
+ }catch(e){/* Don't interrupt workouts on API, connectivity, or authorization errors. */}
+}
+
+spAuthCallback().then(handled=>{if(!handled)home();spCheckAtStartup()});
 </script></body></html>
