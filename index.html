@@ -593,26 +593,6 @@ async function spAutoRefresh(){
  finally{spPolling=false}
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)spAutoRefresh()});
-/* Spotify availability prompt: API reports devices, not whether Android app is closed. */
-let spPromptDismissed=false;
-function spPromptClose(){spPromptDismissed=true;document.getElementById('sp-start-prompt')?.remove()}
-function spPromptOpenSpotify(){spPromptClose();window.location.href='https://open.spotify.com/'}
-function spShowStartupPrompt(){
- if(spPromptDismissed||document.getElementById('sp-start-prompt'))return;
- const overlay=document.createElement('div');overlay.id='sp-start-prompt';
- overlay.className='vs-modal';overlay.style.zIndex='3100';
- overlay.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="sp-prompt-title" class="vs-dialog" style="width:100%;max-width:400px"><h2 id="sp-prompt-title">🎧 Spotify non disponibile</h2><p>Non rilevo dispositivi Spotify Connect attivi. Apri Spotify sul telefono e avvia un brano per poter controllare la musica da V-Shape Pro.</p><button class="btn primary wide" onclick="spPromptOpenSpotify()">Apri Spotify</button><button class="btn ghost wide" style="margin-top:10px" onclick="spPromptClose()">Continua senza musica</button></div>';
- document.body.appendChild(overlay);
-}
-async function spCheckAtStartup(){
- if(!(spGet('access')||spGet('refresh'))||spPromptDismissed)return;
- try{
-  const data=await spApi('me/player/devices');
-  if(!data?.devices?.some(d=>d.is_active)&&!state.active)spShowStartupPrompt();
- }catch(e){/* Don't interrupt workouts on API, connectivity, or authorization errors. */}
-}
-
-
 /* Available on every app screen; shown only after scrolling. */
 (function initBackToTop(){
  const button=document.createElement('button');
@@ -702,7 +682,7 @@ function showStartupFallback(error){
 Promise.resolve().then(()=>spAuthCallback()).then(handled=>{
  if(!handled)home();
  if(spGet('access')||spGet('refresh')){
-  spAccess().then(()=>{spAutoRefresh();if(!handled)spCheckAtStartup()}).catch(e=>console.warn('Spotify auto renewal:',e.message));
+  spAccess().then(()=>{spAutoRefresh();if(!handled)void 0}).catch(e=>console.warn('Spotify auto renewal:',e.message));
  }
  // The Spotify availability prompt is skipped while a workout is in progress.
 }).catch(showStartupFallback);
