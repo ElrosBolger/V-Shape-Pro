@@ -3,6 +3,9 @@
 
 .calendar-fab{position:fixed;right:14px;bottom:18px;z-index:10;background:#2563eb;color:white;border:0;border-radius:999px;padding:13px 17px;font-weight:700;box-shadow:0 6px 25px #0008;cursor:pointer}
 .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:12px 0}.calcell{min-height:43px;border-radius:9px;background:#18253b;color:#e5eefb;border:1px solid #30445e;font-size:14px;cursor:pointer}.calcell.done{border-color:#22c55e;background:#164337}.calcell.today{outline:2px solid #38bdf8}.calcell.selected{background:#2858a1}.calcell.blank{background:transparent;border:0}.calhead{text-align:center;font-size:12px;color:#94a3b8}
+
+/* Global floating return-to-top control */
+#back-to-top{position:fixed;right:18px;bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:900;border:1px solid #41627a;background:#203b50;color:#f2f7ff;width:49px;height:49px;border-radius:50%;display:grid;place-items:center;font-size:25px;box-shadow:0 5px 18px #0007;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s,transform .18s,visibility .18s}#back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}#back-to-top:focus-visible{outline:3px solid var(--accent);outline-offset:3px}@media(prefers-reduced-motion:reduce){#back-to-top{transition:none}}
 </style></head><body><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>PRO</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><span class="pill">8 settimane</span></header><main id="app"></main></div><nav class="nav"><button class="btn" onclick="home()">⌂ Programma</button><button class="btn" onclick="calendarView()">▦ Calendario</button><button class="btn" onclick="historyView()">▤ Diario</button><button class="btn" onclick="settingsView()">⚙ Dati</button><button class="btn" onclick="musicView()">♫ Musica</button></nav><script>
 'use strict';
 const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],profile:{},warmDone:{}};
@@ -352,6 +355,19 @@ async function spCheckAtStartup(){
   if(!data?.devices?.length)spShowStartupPrompt();
  }catch(e){/* Don't interrupt workouts on API, connectivity, or authorization errors. */}
 }
+
+
+/* Available on every app screen; shown only after scrolling. */
+(function initBackToTop(){
+ const button=document.createElement('button');
+ button.id='back-to-top';button.type='button';button.setAttribute('aria-label','Torna all’inizio della pagina');button.title='Torna su';button.textContent='↑';
+ button.addEventListener('click',()=>window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'}));
+ document.body.appendChild(button);
+ let pending=false;
+ function update(){pending=false;button.classList.toggle('visible',window.scrollY>320)}
+ window.addEventListener('scroll',()=>{if(!pending){pending=true;requestAnimationFrame(update)}},{passive:true});
+ update();
+})();
 
 spAuthCallback().then(handled=>{if(!handled)home();spCheckAtStartup()});
 </script></body></html>
