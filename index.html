@@ -59,7 +59,7 @@ function appNotice(message,title='Controlla i dati'){
  ok.addEventListener('click',close);document.addEventListener('keydown',onKey);
  panel.append(ico,heading,body,ok);overlay.append(panel);document.body.append(overlay);ok.focus();
 }
-function appConfirm(message,onConfirm,title='Conferma eliminazione'){
+function appConfirm(message,onConfirm,title='Conferma operazione',confirmLabel='Conferma',danger=false){
  document.getElementById('vs-modal')?.remove();
  const overlay=document.createElement('div');overlay.id='vs-modal';overlay.className='vs-modal';
  const panel=document.createElement('section');panel.className='vs-dialog';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','vs-dialog-title');
@@ -67,7 +67,7 @@ function appConfirm(message,onConfirm,title='Conferma eliminazione'){
  const body=document.createElement('p');body.textContent=String(message);
  const actions=document.createElement('div');actions.className='vs-dialog-actions';
  const cancel=document.createElement('button');cancel.className='btn';cancel.textContent='Annulla';
- const yes=document.createElement('button');yes.className='btn vs-danger';yes.textContent='Elimina definitivamente';
+ const yes=document.createElement('button');yes.className=danger?'btn vs-danger':'btn primary';yes.textContent=confirmLabel;
  const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey)};
  const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close()}};
  cancel.onclick=close;yes.onclick=()=>{close();onConfirm()};
@@ -149,7 +149,7 @@ function openCompletedWorkout(day,week){
  grouped.map(g=>'<div class="exercise"><strong>'+esc(g.name)+'</strong>'+g.sets.map((e,i)=>'<div class="small muted" style="padding-top:7px">Serie '+(i+1)+' · <b>'+esc(e.kg)+' kg</b> · <b>'+esc(e.reps)+' rip.</b> · RIR '+esc(e.rir)+'</div>').join('')+'</div>').join('')+
  '</div><button class="btn primary wide" onclick="home()">← Torna al programma</button>';
 }
-function setWeek(n){if(state.active&&!confirm('Hai una seduta in corso. Cambiare settimana non modifica questa seduta. Continuare?'))return;state.week=n;save();home()}
+function setWeek(n){const apply=()=>{state.week=n;save();home()};if(state.active){appConfirm('La seduta in corso manterrà la sua settimana originale.',apply,'Cambiare settimana','Continua');return}apply()}
 function preview(k){let d=days[k];app.innerHTML=header('Giorno '+k,d.name)+`<div class="card"><h3>Preparazione guidata</h3>${d.mob.map(x=>`<div class="exercise"><strong>${esc(x[0])} · ${Math.ceil(x[1]/60)} min circa</strong><div class="small">${esc(x[2])}</div></div>`).join('')}</div><div class="card"><h3>Serie allenanti</h3>${d.ex.map((e,i)=>`<div class="exercise"><strong>${i+1}. ${esc(blockEx(e))}</strong><div class="small">${e.sets} × ${e.reps} · ${e.rest}s recupero · RIR ~${e.rir}${e.load?' · riferimento '+esc(e.load)+' kg':''}</div><div class="small">${esc(e.note)}</div></div>`).join('')}</div><button class="btn primary wide" ${state.active?.day===k?'':state.active||todayWorkout()?'disabled title="Seduta già in corso o registrata oggi"':''} onclick="${state.active?.day===k?'resume()':`begin('${k}')`}">${state.active?.day===k?'↗ Riprendi seduta':state.active?'Non disponibile':todayWorkout()?'✓ Allenamento di oggi già registrato':'Avvia giorno '+k}</button><button class="btn wide" onclick="home()">Torna al programma</button>`}
 function begin(k){const locked=workoutLockMessage();if(locked){alert(locked);return}if(state.active){alert('Hai già il Giorno '+state.active.day+' in corso. Riprendi la seduta attiva prima di iniziarne un’altra.');return;}state.active={day:k,week:state.week,stage:'warm',warm:0,ex:0,set:0,entries:[],started:new Date().toISOString(),restEnd:null};save();resume()}
 function resume(){let a=state.active;if(!a)return home();if(a.stage==='warm')warmView();else if(a.stage==='train')trainView();else if(a.stage==='rest')restView();else if(a.stage==='cool')coolView()}
@@ -197,7 +197,7 @@ function warmToggle(){
 }
 function warmReset(){const a=state.active;a.warmTimer=null;save();warmView()}
 function advanceWarm(){clearInterval(warmTicker);let a=state.active;a.warmTimer=null;if(++a.warm>=days[a.day].mob.length){a.stage='train'}save();resume()}
-function skipWarm(){if(confirm('Vuoi saltare la preparazione? Esegui comunque almeno le serie di avvicinamento prima dei carichi impegnativi.')){clearInterval(warmTicker);state.active.warmTimer=null;state.active.stage='train';save();resume()}}
+function skipWarm(){appConfirm('Prima dei carichi impegnativi esegui comunque le serie di avvicinamento.',()=>{clearInterval(warmTicker);if(!state.active)return;state.active.warmTimer=null;state.active.stage='train';save();resume()},'Saltare il riscaldamento?','Salta e continua')}
 function key(a){return `${a.day}:${a.week}:${a.ex}:${a.set}`}
 function previousLoad(a){let e=days[a.day].ex[a.ex];return state.loads[`${a.day}:${a.week<=4?'1':'2'}:${a.ex}`]??e.load??''}
 
@@ -255,7 +255,7 @@ function adjustRest(n){state.active.restEnd=Math.max(Date.now(),state.active.res
 function endRest(){clearInterval(ticker);state.active.stage='train';state.active.restEnd=null;save();trainView()}
 function coolView(){let a=state.active,d=days[a.day];app.innerHTML=header('Allenamento completato!','Ottimo. Ora puoi fare qualche minuto di stretching leggero.')+`<div class="card"><h2>Stretching facoltativo · 3–5 min</h2><p class="subtle">Mantieni ogni posizione con una tensione lieve, senza dolore e senza rimbalzi. La flessibilità migliora con costanza, non forzando.</p>${d.cool.map(x=>`<div class="exercise"><strong>${esc(x[0])} · ${x[1]} s circa</strong><div class="small">${esc(x[2])}</div></div>`).join('')}<button class="btn primary wide" onclick="complete()">Salva allenamento ✓</button></div>`}
 function complete(){let a=state.active;if(!a)return;if(todayWorkout()){alert('Un allenamento è già stato registrato oggi. Non è possibile salvare una seconda seduta.');return}spPauseOnFinish();state.records.push({date:new Date().toISOString(),day:a.day,week:a.week,started:a.started,entries:a.entries});state.active=null;save();app.innerHTML=header('Seduta salvata','Il diario conserva carichi e ripetizioni sul dispositivo.')+`<div class="card"><h2 class="check">✓ Allenamento registrato</h2><p>Hai registrato ${a.entries.length} serie allenanti.</p><button class="btn primary wide" onclick="home()">Torna al programma</button></div>`}
-function abandon(){if(confirm('Interrompere e perdere le serie di questa seduta?')){spPauseOnFinish();state.active=null;clearInterval(ticker);save();home()}}
+function abandon(){appConfirm('Le serie di questa seduta non saranno salvate. Vuoi davvero interrompere?',()=>{spPauseOnFinish();state.active=null;clearInterval(ticker);save();home()},'Interrompere la seduta?','Interrompi seduta',true)}
 function historyView(){
  const list=[...state.records].reverse(),today=localDay(new Date());
  app.innerHTML=header('Diario allenamenti','Le tue sedute, ordinate dalla più recente.')+
@@ -289,9 +289,7 @@ function openMeasureEntry(id){
 }
 function closeMeasureEntry(){document.getElementById('measure-modal')?.remove()}
 function deleteMeasureEntry(id){
- if(!confirm('Eliminare definitivamente questa misurazione dallo storico?'))return;
- state.measurementHistory=measureHistory().filter(e=>e.id!==id);
- save();closeMeasureEntry();settingsView();
+ appConfirm('Questa misurazione sarà rimossa dallo storico.',()=>{state.measurementHistory=measureHistory().filter(e=>e.id!==id);save();closeMeasureEntry();settingsView()},'Eliminare la misurazione?','Elimina misurazione',true);
 }
 
 function ageAt(birth,at=new Date()){
@@ -350,7 +348,7 @@ function saveMeasures(){
 function download(name,body,type){let url=URL.createObjectURL(new Blob([body],{type}));let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function exportJSON(){download('V-Shape-Pro-backup.json',JSON.stringify(state,null,2),'application/json')}
 function exportCSV(){let rows=[['Data','Giorno','Settimana','Esercizio','Peso kg','Ripetizioni','RIR']];state.records.forEach(r=>r.entries.forEach(x=>rows.push([r.date,r.day,r.week,x.exercise,x.kg,x.reps,x.rir])));download('V-Shape-Pro-diario.csv','\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8')}
-async function importJSON(ev){let f=ev.target.files?.[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!Array.isArray(obj.records)||typeof obj.loads!=='object'||!Number.isInteger(obj.week)||obj.week<1||obj.week>8)throw Error('Formato non valido');if(confirm('Sostituire i dati locali con questo backup?')){state={...initial,...obj,active:null};save();home()}}catch(e){alert('Impossibile importare: '+e.message)}}
+async function importJSON(ev){let f=ev.target.files?.[0];if(!f)return;try{let obj=JSON.parse(await f.text());if(!Array.isArray(obj.records)||typeof obj.loads!=='object'||!Number.isInteger(obj.week)||obj.week<1||obj.week>8)throw Error('Formato non valido');appConfirm('Il ripristino sostituirà i dati attualmente presenti su questo dispositivo. Esporta un backup prima di procedere.',()=>{state={...initial,...obj,active:null};save();home()},'Ripristinare il backup?','Ripristina dati',true)}catch(e){alert('Impossibile importare: '+e.message)}}
 
 function localDay(d){let z=new Date(d);return `${z.getFullYear()}-${String(z.getMonth()+1).padStart(2,'0')}-${String(z.getDate()).padStart(2,'0')}`}
 let calendarMonth=new Date().getMonth(),calendarYear=new Date().getFullYear(),calendarSelected=localDay(new Date());
