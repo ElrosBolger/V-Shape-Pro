@@ -61,8 +61,42 @@ function coolView(){let a=state.active,d=days[a.day];app.innerHTML=header('Allen
 function complete(){let a=state.active;if(!a)return;spPauseOnFinish();state.records.push({date:new Date().toISOString(),day:a.day,week:a.week,started:a.started,entries:a.entries});state.active=null;save();app.innerHTML=header('Seduta salvata','Il diario conserva carichi e ripetizioni sul dispositivo.')+`<div class="card"><h2 class="check">✓ Allenamento registrato</h2><p>Hai registrato ${a.entries.length} serie allenanti.</p><button class="btn primary wide" onclick="home()">Torna al programma</button></div>`}
 function abandon(){if(confirm('Interrompere e perdere le serie di questa seduta?')){spPauseOnFinish();state.active=null;clearInterval(ticker);save();home()}}
 function historyView(){let list=[...state.records].reverse();app.innerHTML=header('Diario allenamenti','Progressi registrati localmente in questo browser.')+`<div class="row"><button class="btn" onclick="exportCSV()">Esporta CSV</button><button class="btn" onclick="exportJSON()">Backup JSON</button></div>`+(list.length?list.map((r,i)=>`<details class="card"><summary><b>${esc(r.day)} · ${new Date(r.date).toLocaleDateString('it-IT')}</b> <span class="muted">· sett. ${r.week} · ${r.entries.length} serie</span></summary>${r.entries.map(x=>`<div class="exercise"><strong>${esc(x.exercise)}</strong><div class="small">${esc(x.kg)} kg · ${x.reps} rip · RIR ${esc(x.rir)}</div></div>`).join('')}</details>`).join(''):`<div class="card">Nessuna seduta salvata. Completa il primo allenamento per iniziare il diario.</div>`)}
-function settingsView(){let m=state.measurements;app.innerHTML=header('Dati e sicurezza','Misure facoltative per monitorare le proporzioni.')+`<div class="card"><div class="grid">${[['weight','Peso (kg)'],['waist','Vita (cm)'],['chest','Torace (cm)'],['shoulders','Spalle (cm)']].map(([k,v])=>`<div><label>${v}</label><input id="m_${k}" inputmode="decimal" value="${esc(m[k]||'')}" placeholder="—"></div>`).join('')}</div><button class="btn primary wide" style="margin-top:12px" onclick="saveMeasures()">Salva misure</button></div><div class="card"><h3>Backup e ripristino</h3><p class="subtle">I dati rimangono solo nel browser: se cancelli i dati del sito o apri il file in un altro browser, potrebbero non esserci. Fai periodicamente un backup.</p><div class="row"><button class="btn" onclick="exportJSON()">Esporta JSON</button><label class="btn" style="color:var(--ink);margin:0">Importa JSON<input type="file" accept="application/json,.json" style="display:none" onchange="importJSON(event)"></label></div></div><div class="card"><h3>Come interpretare i carichi</h3><p class="subtle">I pesi iniziali sono riferimenti da te dichiarati, non prescrizioni. Le macchine hanno resistenze diverse. Per la panca guidata registra il carico per lato, mantenendo lo stesso criterio ogni volta.</p><p class="subtle">Evita dolore articolare acuto, movimenti forzati e serie al cedimento sistematico. In caso di sintomi o condizioni mediche, chiedi consiglio a un professionista qualificato.</p></div>`}
-function saveMeasures(){for(let k of ['weight','waist','chest','shoulders'])state.measurements[k]=document.getElementById('m_'+k).value.trim();save();alert('Misure salvate')}
+const measureMain=[['weight','Peso (kg)'],['height','Altezza (cm)'],['waist','Vita (cm)'],['chest','Torace (cm)'],['shoulders','Spalle (cm)']];
+const measureExtra=[['neck','Collo (cm)'],['armLeft','Braccio sinistro (cm)'],['armRight','Braccio destro (cm)'],['forearmLeft','Avambraccio sinistro (cm)'],['forearmRight','Avambraccio destro (cm)'],['hips','Fianchi / glutei (cm)'],['thighLeft','Coscia sinistra (cm)'],['thighRight','Coscia destra (cm)'],['calfLeft','Polpaccio sinistro (cm)'],['calfRight','Polpaccio destro (cm)']];
+let measureExpanded=false;
+function measureFields(fields){
+ return fields.map(([k,label])=>'<div><label for="m_'+k+'">'+label+'</label><input id="m_'+k+'" type="text" inputmode="decimal" autocomplete="off" value="'+esc(state.measurements[k]??'')+'" placeholder="—"></div>').join('');
+}
+function settingsView(){
+ app.innerHTML=header('Dati e sicurezza','Misure facoltative per monitorare le proporzioni.')+
+ '<div class="card"><h3>Misure principali</h3><p class="small muted">Misurale possibilmente nelle stesse condizioni, senza contrarre i muscoli.</p><div class="grid">'+measureFields(measureMain)+'</div>'+
+ '<button class="btn wide" style="margin-top:12px" id="measure-toggle" onclick="toggleMeasureDetails()">'+(measureExpanded?'− Mostra meno':'+ Mostra più misure')+'</button>'+
+ '<div id="measure-extra" '+(measureExpanded?'':'class="hidden"')+'><h3 style="margin-top:16px">Misure aggiuntive</h3><p class="small muted">Circonferenze opzionali, utili per seguire lo sviluppo proporzionato di braccia e gambe.</p><div class="grid">'+measureFields(measureExtra)+'</div></div>'+
+ '<button class="btn primary wide" style="margin-top:12px" onclick="saveMeasures()">Salva misure</button></div>'+
+ '<div class="card"><h3>Backup e ripristino</h3><p class="subtle">I dati rimangono solo nel browser: se cancelli i dati del sito o apri il file in un altro browser, potrebbero non esserci. Fai periodicamente un backup.</p><div class="row"><button class="btn" onclick="exportJSON()">Esporta JSON</button><label class="btn" style="color:var(--ink);margin:0">Importa JSON<input type="file" accept="application/json,.json" style="display:none" onchange="importJSON(event)"></label></div></div>'+
+ '<div class="card"><h3>Come interpretare i carichi</h3><p class="subtle">I pesi iniziali sono riferimenti da te dichiarati, non prescrizioni. Le macchine hanno resistenze diverse. Per la panca guidata registra il carico per lato, mantenendo lo stesso criterio ogni volta.</p><p class="subtle">Evita dolore articolare acuto, movimenti forzati e serie al cedimento sistematico. In caso di sintomi o condizioni mediche, chiedi consiglio a un professionista qualificato.</p></div>';
+}
+function toggleMeasureDetails(){
+ const fields=[...measureMain,...measureExtra];
+ const current={};
+ for(const [key] of fields){const el=document.getElementById('m_'+key);if(el)current[key]=el.value}
+ measureExpanded=!measureExpanded;
+ settingsView();
+ for(const [key,value] of Object.entries(current)){const el=document.getElementById('m_'+key);if(el)el.value=value}
+}
+function saveMeasures(){
+ const values={...state.measurements};
+ for(const [key,label] of [...measureMain,...measureExtra]){
+  const el=document.getElementById('m_'+key);if(!el)continue;
+  const raw=el.value.trim().replace(',','.');
+  if(raw&&!/^\\d+(?:\\.\\d{1,2})?$/.test(raw)){alert('Controlla il valore di '+label+': inserisci un numero positivo.');el.focus();return}
+  const n=Number(raw);
+  if(raw&&(n<=0||n>500)){alert('Controlla il valore di '+label+'.');el.focus();return}
+  values[key]=raw;
+ }
+ state.measurements=values;
+ save();alert('Misure salvate');
+}
 function download(name,body,type){let url=URL.createObjectURL(new Blob([body],{type}));let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function exportJSON(){download('V-Shape-Pro-backup.json',JSON.stringify(state,null,2),'application/json')}
 function exportCSV(){let rows=[['Data','Giorno','Settimana','Esercizio','Peso kg','Ripetizioni','RIR']];state.records.forEach(r=>r.entries.forEach(x=>rows.push([r.date,r.day,r.week,x.exercise,x.kg,x.reps,x.rir])));download('V-Shape-Pro-diario.csv','\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8')}
