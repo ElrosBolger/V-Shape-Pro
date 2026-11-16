@@ -573,5 +573,40 @@ async function spCheckAtStartup(){
  schedule();
 })();
 
+/* Android system Back gesture: internal page history, then exit only from first screen. */
+(function installInternalNavigation(){
+ const routes={home:()=>home(),preview:arg=>preview(arg),warmView:()=>warmView(),trainView:()=>trainView(),restView:()=>restView(),coolView:()=>coolView(),historyView:()=>historyView(),calendarView:()=>calendarView(),progressionView:()=>progressionView(),settingsView:()=>settingsView(),musicView:()=>musicView()};
+ const routeFns=['home','preview','warmView','trainView','restView','coolView','historyView','calendarView','progressionView','settingsView','musicView'];
+ let restoring=false,current='home',currentArg=null;
+ const makeState=(route,arg)=>({vsInternal:true,route,arg:arg??null});
+ try{window.history.replaceState(makeState('home',null),'',location.href)}catch(e){return}
+ for(const name of routeFns){
+  const original=window[name];
+  if(typeof original!=='function')continue;
+  window[name]=function(...args){
+   const result=original.apply(this,args);
+   if(!restoring){
+    const arg=name==='preview'?args[0]:null;
+    if(current!==name||currentArg!==arg){
+     current=name;currentArg=arg;
+     window.history.pushState(makeState(name,arg),'',location.href);
+    }
+   }
+   return result;
+  };
+ }
+ window.addEventListener('popstate',event=>{
+  const route=event.state?.vsInternal?event.state.route:'home';
+  const arg=event.state?.arg??null;
+  restoring=true;
+  try{
+   document.getElementById('app-menu')?.setAttribute('hidden','');
+   document.getElementById('menu-toggle')?.setAttribute('aria-expanded','false');
+   (routes[route]||routes.home)(arg);
+   current=route;currentArg=arg;
+   window.scrollTo(0,0);
+  }finally{restoring=false}
+ });
+})();
 spAuthCallback().then(handled=>{if(!handled)home();spCheckAtStartup()});
 </script></body></html>
