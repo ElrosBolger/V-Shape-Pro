@@ -5,7 +5,7 @@
 .calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:12px 0}.calcell{min-height:43px;border-radius:9px;background:#18253b;color:#e5eefb;border:1px solid #30445e;font-size:14px;cursor:pointer}.calcell.done{border-color:#22c55e;background:#164337}.calcell.today{outline:2px solid #38bdf8}.calcell.selected{background:#2858a1}.calcell.blank{background:transparent;border:0}.calhead{text-align:center;font-size:12px;color:#94a3b8}
 </style></head><body><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>PRO</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><span class="pill">8 settimane</span></header><main id="app"></main></div><nav class="nav"><button class="btn" onclick="home()">⌂ Programma</button><button class="btn" onclick="calendarView()">▦ Calendario</button><button class="btn" onclick="historyView()">▤ Diario</button><button class="btn" onclick="settingsView()">⚙ Dati</button><button class="btn" onclick="musicView()">♫ Musica</button></nav><script>
 'use strict';
-const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],warmDone:{}};
+const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],profile:{},warmDone:{}};
 let state;try{state={...initial,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch{state={...initial}};
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(state))}catch{alert('Memoria locale piena: esporta il backup.')}};
 const app=document.getElementById('app');
@@ -92,12 +92,28 @@ function deleteMeasureEntry(id){
  save();closeMeasureEntry();settingsView();
 }
 
+function ageAt(birth,at=new Date()){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(birth||''))return null;
+ const [y,m,d]=birth.split('-').map(Number),dob=new Date(y,m-1,d);
+ if(dob.getFullYear()!==y||dob.getMonth()!==m-1||dob.getDate()!==d||dob>at)return null;
+ let years=at.getFullYear()-y;
+ if(at.getMonth()+1<m||(at.getMonth()+1===m&&at.getDate()<d))years--;
+ return years>=0&&years<=120?years:null;
+}
+function saveBirthDate(){
+ const el=document.getElementById('profile-birthdate');if(!el)return;
+ const value=el.value;
+ if(value&&ageAt(value)===null){alert('Inserisci una data di nascita valida.');return}
+ state.profile={...(state.profile||{}),birthDate:value};
+ save();settingsView();alert('Profilo aggiornato.');
+}
 let measureExpanded=false;
 function measureFields(fields){
  return fields.map(([k,label])=>'<div><label for="m_'+k+'">'+label+'</label><input id="m_'+k+'" type="text" inputmode="decimal" autocomplete="off" value="'+esc(state.measurements[k]??'')+'" placeholder="—"></div>').join('');
 }
 function settingsView(){
  app.innerHTML=header('Dati e sicurezza','Misure facoltative per monitorare le proporzioni.')+
+ '<div class="card"><h3>Profilo personale</h3><p class="small muted">La tua età viene calcolata automaticamente dalla data di nascita.</p><label for="profile-birthdate">Data di nascita</label><input id="profile-birthdate" type="date" value="'+esc(state.profile?.birthDate||'')+'"><p class="small muted">Età attuale: <b>'+(ageAt(state.profile?.birthDate)??'—')+(ageAt(state.profile?.birthDate)!==null?' anni':'')+'</b></p><button class="btn wide" onclick="saveBirthDate()">Salva profilo</button></div>'+
  '<div class="card"><h3>Misure principali</h3><p class="small muted">Misurale possibilmente nelle stesse condizioni, senza contrarre i muscoli.</p><div class="grid">'+measureFields(measureMain)+'</div>'+
  '<button class="btn wide" style="margin-top:12px" id="measure-toggle" onclick="toggleMeasureDetails()">'+(measureExpanded?'− Mostra meno':'+ Mostra più misure')+'</button>'+
  '<div id="measure-extra" '+(measureExpanded?'':'class="hidden"')+'><h3 style="margin-top:16px">Misure aggiuntive</h3><p class="small muted">Circonferenze opzionali, utili per seguire lo sviluppo proporzionato di braccia e gambe.</p><div class="grid">'+measureFields(measureExtra)+'</div></div>'+
@@ -126,7 +142,7 @@ function saveMeasures(){
  if(!measureAll.some(([key])=>values[key])){alert('Inserisci almeno una misura prima di salvare.');return}
  state.measurements=values;
  state.measurementHistory=measureHistory();
- state.measurementHistory.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),date:new Date().toISOString(),values:{...values}});
+ state.measurementHistory.push({id:'m_'+Date.now()+'_'+Math.random().toString(36).slice(2,8),date:new Date().toISOString(),age:ageAt(state.profile?.birthDate),values:{...values}});
  save();settingsView();alert('Misurazione salvata nello storico.');
 }
 function download(name,body,type){let url=URL.createObjectURL(new Blob([body],{type}));let a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
