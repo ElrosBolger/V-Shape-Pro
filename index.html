@@ -456,8 +456,18 @@ async function spLoad(){
  spMessage=failures.length?'Spotify ha restituito un errore: '+failures.join(' · '):'';
  musicView();
 }
+function spOfferOpenSpotify(){
+ if(document.getElementById('sp-open-help'))return;
+ const overlay=document.createElement('div');
+ overlay.id='sp-open-help';overlay.className='vs-modal';overlay.style.zIndex='3100';
+ overlay.innerHTML='<div role="dialog" aria-modal="true" aria-labelledby="sp-open-title" class="vs-dialog" style="width:100%;max-width:400px"><h2 id="sp-open-title">🎧 Avvia Spotify</h2><p>Non risulta un dispositivo disponibile per riprendere la musica. Apri Spotify e avvia un brano, poi torna a V-Shape Pro.</p><button class="btn primary wide" onclick="document.getElementById(\'sp-open-help\')?.remove();location.href=\'https://open.spotify.com/\'">Apri Spotify</button><button class="btn ghost wide" style="margin-top:10px" onclick="document.getElementById(\'sp-open-help\')?.remove()">Non ora</button></div>';
+ document.body.appendChild(overlay);
+}
+function spPlaybackUnavailable(e){
+ return /no active device|device not found|no active player|player command failed|not found|404/i.test(String(e?.message||e));
+}
 async function spControl(path,method='PUT',body){
- try{await spApi(path,method,body);setTimeout(spLoad,450)}catch(e){spError(e)}
+ try{await spApi(path,method,body);setTimeout(spLoad,450)}catch(e){if(path==='me/player/play'&&spPlaybackUnavailable(e))spOfferOpenSpotify();else spError(e)}
 }
 function spDevice(id){spControl('me/player','PUT',{device_ids:[id],play:false})}
 async function spPlaylist(uri){
@@ -465,11 +475,11 @@ async function spPlaylist(uri){
   let devices=spDevices;
   if(!devices.length){const data=await spApi('me/player/devices');devices=data?.devices||[];spDevices=devices}
   const target=devices.find(d=>d.is_active)||devices.find(d=>d.type==='Smartphone')||devices[0];
-  if(!target?.id){spMessage='Apri Spotify sul Pixel e avvia una canzone una sola volta, poi torna qui e premi Aggiorna. Spotify non permette di avviare da remoto un telefono non rilevato.';musicView();return}
+  if(!target?.id){spOfferOpenSpotify();return}
   await spApi('me/player/play?device_id='+encodeURIComponent(target.id),'PUT',{context_uri:uri});
   spMessage='Playlist avviata sul dispositivo '+target.name+'.';
   setTimeout(spLoad,600);
- }catch(e){spError(e)}
+ }catch(e){if(spPlaybackUnavailable(e))spOfferOpenSpotify();else spError(e)}
 }
 function spTime(ms){const t=Math.max(0,Math.floor((Number(ms)||0)/1000));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 let spProgressAt=Date.now();
@@ -508,7 +518,7 @@ async function spQuickControl(action){
  if(!spCurrent)return;
  if(action==='toggle'){action=spCurrent.is_playing?'pause':'play';spCurrent.is_playing=action==='play';spUpdateMini()}
  try{await spApi('me/player/'+action,action==='next'?'POST':'PUT');await spAutoRefresh()}
- catch(e){spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
+ catch(e){if(action==='play'&&spPlaybackUnavailable(e))spOfferOpenSpotify();else spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
 }
 setInterval(()=>{if(spGet('access')&&!document.hidden)spUpdateMini()},1500);
 async function spPauseOnFinish(){
@@ -682,7 +692,7 @@ function showStartupFallback(error){
 Promise.resolve().then(()=>spAuthCallback()).then(handled=>{
  if(!handled)home();
  if(spGet('access')||spGet('refresh')){
-  spAccess().then(()=>{spAutoRefresh();if(!handled)void 0}).catch(e=>console.warn('Spotify auto renewal:',e.message));
+  spAccess().then(()=>{spAutoRefresh()}).catch(e=>console.warn('Spotify auto renewal:',e.message));
  }
  // The Spotify availability prompt is skipped while a workout is in progress.
 }).catch(showStartupFallback);
