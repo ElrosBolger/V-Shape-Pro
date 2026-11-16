@@ -85,75 +85,105 @@ input::placeholder{color:#a79ab8}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* Original artwork, contained in a black viewport; no crop or stretching. */
-#vs-launch-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#000;pointer-events:none;opacity:1;transition:opacity .22s ease;animation:vs-splash-expire 1.4s step-end forwards!important}
+#vs-launch-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#000;pointer-events:none;opacity:1;transition:opacity .4s ease;animation:vs-splash-expire 3.2s step-end forwards!important}
 #vs-launch-splash[hidden]{display:none}
 #vs-launch-splash img{display:block;width:100%;height:100%;min-width:0;min-height:0;object-fit:contain;object-position:center;background:#000;border:0;border-radius:0;box-shadow:none}
 #vs-launch-splash.vs-splash-out{opacity:0}
 @keyframes vs-splash-expire{to{opacity:0;visibility:hidden}}
 @media(prefers-reduced-motion:reduce){#vs-launch-splash{transition:none}}
 </style></head><body><script>
-/* HTML introduction only: Android's native launch screen is OS-controlled.
-   Read workout state without writing or migrating it. Never delay a resumption,
-   OAuth callback, history restoration or an interaction with the app. */
+/* HTML introduction only; Android's native launch screen remains OS-controlled.
+   Read-only access to saved workouts. Timers continue against their saved deadlines. */
 (() => {
-  try {
-    const saved = JSON.parse(localStorage.getItem('vshape_final_v1') || 'null');
-    const query = new URLSearchParams(location.search);
-    const navigation = performance.getEntriesByType('navigation')[0];
-    if (saved?.active || query.has('code') || query.has('error') ||
-        navigation?.type === 'back_forward' || document.hidden) return;
-  } catch (_) { return; }
+  const HOLD_MS = 2500, FADE_MS = 400, QUICK_RETURN_MS = 30000;
+  let activeIntro = null, hiddenAt = null;
 
-  const started = performance.now();
-  const splash = document.createElement('div');
-  splash.id = 'vs-launch-splash';
-  splash.hidden = true;
-  splash.setAttribute('aria-hidden', 'true');
-  const artwork = document.createElement('img');
-  artwork.alt = '';
-  artwork.width = 1080;
-  artwork.height = 2400;
-  artwork.decoding = 'async';
-  artwork.fetchPriority = 'high';
-  let ended = false;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const remove = () => splash.remove();
-  const dismiss = (immediate = false) => {
-    if (ended) return;
-    ended = true;
-    clearTimeout(deadline);
-    window.removeEventListener('pagehide', abort);
-    window.removeEventListener('pageshow', onPageShow);
-    document.removeEventListener('visibilitychange', onVisibility);
-    document.removeEventListener('pointerdown', abort, true);
-    document.removeEventListener('keydown', abort, true);
-    if (immediate || reducedMotion || splash.hidden) remove();
-    else {
-      splash.classList.add('vs-splash-out');
-      setTimeout(remove, 240);
+  const needsImmediateAccess = warm => {
+    if (document.hidden) return true;
+    try {
+      const query = new URLSearchParams(location.search);
+      const nav = performance.getEntriesByType('navigation')[0];
+      if (query.has('code') || query.has('error') || query.get('resume') === '1' ||
+          query.get('quick') === '1' || (!warm && nav?.type === 'back_forward')) return true;
+      if (warm && document.activeElement?.matches('input,select,textarea,[contenteditable="true"]')) return true;
+      const saved = JSON.parse(localStorage.getItem('vshape_final_v1') || 'null');
+      const workout = saved?.active, now = Date.now();
+      const restDue = workout?.stage === 'rest' && Number.isFinite(workout.restEnd) &&
+        workout.restEnd - now <= HOLD_MS + FADE_MS;
+      const warmDue = workout?.stage === 'warm' && workout.warmTimer?.running &&
+        Number.isFinite(workout.warmTimer.ends) && workout.warmTimer.ends - now <= HOLD_MS + FADE_MS;
+      return !!(restDue || warmDue);
+    } catch (_) { return true; }
+  };
+
+  const launchIntro = (warm = false) => {
+    if (activeIntro || needsImmediateAccess(warm)) return;
+    const started = performance.now();
+    const splash = document.createElement('div');
+    splash.id = 'vs-launch-splash';
+    splash.hidden = true;
+    splash.setAttribute('aria-hidden', 'true');
+    const artwork = document.createElement('img');
+    artwork.alt = '';
+    artwork.width = 1080;
+    artwork.height = 2400;
+    artwork.decoding = 'async';
+    artwork.fetchPriority = 'high';
+    let ended = false, loadDeadline, holdDeadline, hardDeadline, removeDeadline;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const remove = () => {
+      clearTimeout(loadDeadline); clearTimeout(holdDeadline);
+      clearTimeout(hardDeadline); clearTimeout(removeDeadline);
+      document.removeEventListener('pointerdown', abort, true);
+      document.removeEventListener('keydown', abort, true);
+      splash.remove();
+      if (activeIntro?.node === splash) activeIntro = null;
+    };
+    const dismiss = (immediate = false) => {
+      if (ended) { if (immediate) remove(); return; }
+      ended = true;
+      clearTimeout(loadDeadline); clearTimeout(holdDeadline);
+      if (immediate || reducedMotion || splash.hidden) remove();
+      else {
+        splash.classList.add('vs-splash-out');
+        removeDeadline = setTimeout(remove, FADE_MS + 20);
+      }
+    };
+    const abort = () => dismiss(true);
+    activeIntro = {node: splash, close: dismiss};
+    // No image means no black overlay. Neither deadline depends on app or Spotify startup.
+    loadDeadline = setTimeout(abort, 2000);
+    hardDeadline = setTimeout(abort, 5200);
+    artwork.addEventListener('load', () => {
+      if (ended) return;
+      if (performance.now() - started > 1800 || needsImmediateAccess(warm)) { abort(); return; }
+      clearTimeout(loadDeadline);
+      splash.hidden = false;
+      holdDeadline = setTimeout(() => dismiss(), HOLD_MS);
+    }, {once: true});
+    artwork.addEventListener('error', abort, {once: true});
+    document.addEventListener('pointerdown', abort, true);
+    document.addEventListener('keydown', abort, true);
+    splash.appendChild(artwork);
+    document.body.appendChild(splash);
+    artwork.src = './splash-1080x2400.jpg';
+  };
+
+  window.addEventListener('pagehide', () => activeIntro?.close(true));
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) { hiddenAt = null; activeIntro?.close(true); }
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      hiddenAt = Date.now();
+      activeIntro?.close(true);
+    } else {
+      const away = hiddenAt === null ? 0 : Date.now() - hiddenAt;
+      hiddenAt = null;
+      if (away >= QUICK_RETURN_MS) launchIntro(true);
     }
-  };
-  const abort = () => dismiss(true);
-  const onPageShow = event => { if (event.persisted) abort(); };
-  const onVisibility = () => { if (document.hidden) abort(); };
-  // Armed before app initialization, and independent of image/network success.
-  const deadline = setTimeout(() => dismiss(), 1100);
-  const reveal = () => {
-    if (ended) return;
-    // A late image must never cover an interface the user has already reached.
-    if (performance.now() - started > 800) abort();
-    else splash.hidden = false;
-  };
-  artwork.addEventListener('load', reveal, {once: true});
-  artwork.addEventListener('error', abort, {once: true});
-  window.addEventListener('pagehide', abort);
-  window.addEventListener('pageshow', onPageShow);
-  document.addEventListener('visibilitychange', onVisibility);
-  document.addEventListener('pointerdown', abort, true);
-  document.addEventListener('keydown', abort, true);
-  splash.appendChild(artwork);
-  document.body.appendChild(splash);
-  artwork.src = './splash-1080x2400.jpg';
+  });
+  launchIntro();
 })();
 </script><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>ASCENSION</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="internal-back" type="button" onclick="appGoBack()" hidden aria-label="Torna alla schermata precedente">← Indietro</button><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
 'use strict';

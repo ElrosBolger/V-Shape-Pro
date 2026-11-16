@@ -1,11 +1,11 @@
 'use strict';
 
 const CACHE_PREFIX = 'vshape-pro-';
-const CACHE = CACHE_PREFIX + 'v9-original-graphics-20261116';
+const CACHE = CACHE_PREFIX + 'v10-pixel-graphics-20261116';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png',
-  './icon-maskable-192.png', './icon-maskable-512.png',
+  './icon-maskable-v2-192.png', './icon-maskable-v2-512.png',
   './favicon-32.png', './apple-touch-icon.png', './splash-1080x2400.jpg'
 ];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
@@ -33,7 +33,8 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin ||
       !url.href.startsWith(self.registration.scope)) return;
 
-  event.respondWith(fetch(request).then(response => {
+  const image = ASSET_URLS.has(url.href) && /\.(png|jpg)$/.test(url.pathname);
+  const network = () => fetch(request).then(response => {
     // Only static assets are cached, never OAuth callback query strings.
     if (response.ok && ASSET_URLS.has(url.href)) {
       const copy = response.clone();
@@ -49,5 +50,7 @@ self.addEventListener('fetch', event => {
       return (await cache.match('./index.html')) || Response.error();
     }
     return Response.error();
-  }));
+  });
+  event.respondWith(image ? caches.open(CACHE).then(async cache =>
+    (await cache.match(request)) || network()) : network());
 });
