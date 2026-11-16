@@ -377,9 +377,14 @@ const SPOTIFY_CLIENT_ID='e4bf48bde1f54dfeb8ebcaa7d9cc7b6c';
 const SPOTIFY_REDIRECT='https://elrosbolger.github.io/V-Shape-Pro/';
 const SPOTIFY_SCOPES='user-read-playback-state user-modify-playback-state user-read-currently-playing playlist-read-private playlist-read-collaborative';
 const spStore='vshape_spotify_';
-const spGet=k=>sessionStorage.getItem(spStore+k);
-const spSet=(k,v)=>sessionStorage.setItem(spStore+k,String(v));
-const spClear=()=>['access','refresh','expires','verifier','state'].forEach(k=>sessionStorage.removeItem(spStore+k));
+// Persistent authorization; transient OAuth PKCE secrets stay in session storage.
+const spGet=k=>(k==='verifier'||k==='state'?sessionStorage:localStorage).getItem(spStore+k);
+const spSet=(k,v)=>(k==='verifier'||k==='state'?sessionStorage:localStorage).setItem(spStore+k,String(v));
+const spClear=()=>{['access','refresh','expires'].forEach(k=>localStorage.removeItem(spStore+k));['verifier','state'].forEach(k=>sessionStorage.removeItem(spStore+k))};
+// Migrate existing credentials without asking for another Spotify consent.
+for(const k of ['access','refresh','expires']){
+ try{if(!localStorage.getItem(spStore+k)&&sessionStorage.getItem(spStore+k))localStorage.setItem(spStore+k,sessionStorage.getItem(spStore+k));sessionStorage.removeItem(spStore+k)}catch(e){console.warn('Spotify credential migration:',e)}
+}
 const spEscape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let spMessage='';
 let spCurrent=null;
@@ -416,14 +421,20 @@ async function spAuthCallback(){
   sessionStorage.removeItem(spStore+'verifier');sessionStorage.removeItem(spStore+'state');
   spMessage='Spotify collegato.';
  }catch(e){spMessage=e.message}
- musicView();if(spGet('access'))spLoad();
+ musicView();if(spGet('access')||spGet('refresh'))spLoad();
  return true;
 }
+let spRefreshInFlight=null;
 async function spAccess(){
- if(!spGet('access'))throw Error('Collega prima Spotify.');
- if(Date.now()<Number(spGet('expires')||0)-60000)return spGet('access');
- if(!spGet('refresh'))throw Error('Sessione scaduta: ricollega Spotify.');
- return spToken({grant_type:'refresh_token',refresh_token:spGet('refresh'),client_id:SPOTIFY_CLIENT_ID});
+ const token=spGet('access');
+ if(token&&Date.now()<Number(spGet('expires')||0)-60000)return token;
+ if(!spGet('refresh'))throw Error('Collega Spotify una volta per attivare il rinnovo automatico.');
+ if(!spRefreshInFlight){
+  spRefreshInFlight=spToken({grant_type:'refresh_token',refresh_token:spGet('refresh'),client_id:SPOTIFY_CLIENT_ID})
+   .catch(e=>{if(/invalid_grant|revoked/i.test(e.message||'')){spClear();spMessage='Autorizzazione Spotify scaduta o revocata. Ricollega il tuo account.'}throw e})
+   .finally(()=>{spRefreshInFlight=null});
+ }
+ return spRefreshInFlight;
 }
 async function spApi(path,method='GET',body){
  const token=await spAccess();
@@ -435,7 +446,7 @@ async function spApi(path,method='GET',body){
 }
 function spError(e){spMessage=e.message||String(e);musicView()}
 async function spLoad(){
- if(!spGet('access')){spMessage='Collega Spotify per visualizzare musica e dispositivi.';musicView();return}
+ if(!spGet('access')&&!spGet('refresh')){spMessage='Collega Spotify una sola volta per attivare la connessione.';musicView();return}
  const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices'),spApi('me/playlists?limit=30')]);
  const [playback,devices,playlists]=results;
  if(playback.status==='fulfilled'){spCurrent=playback.value;spProgressAt=Date.now();spUpdateMini();}
@@ -489,7 +500,7 @@ function spUpdateMini(){
  let bar=document.getElementById('sp-mini');
  if(!bar){bar=document.createElement('aside');bar.id='sp-mini';bar.className='sp-mini';document.body.appendChild(bar)}
  const item=spCurrent?.item;
- if(!spGet('access')||!item){bar.hidden=true;document.body.classList.remove('sp-mini-visible');return}
+ if(!(spGet('access')||spGet('refresh'))||!item){bar.hidden=true;document.body.classList.remove('sp-mini-visible');return}
  bar.hidden=false;document.body.classList.add('sp-mini-visible');
  const art=item.album?.images?.[2]?.url||item.album?.images?.[1]?.url||'';
  const signature=[item.id,spCurrent.is_playing,art].join('|');
@@ -528,7 +539,7 @@ function musicView(){
  spEnsureAutoRefresh();
  spLastSignature=spSignature();
  spUpdateMini();
- const connected=!!spGet('access');
+ const connected=!!(spGet('access')||spGet('refresh'));
  const item=spCurrent?.item;
  const name=spEscape(item?.name||'Nessun brano attivo');
  const artist=spEscape(item?.artists?.map(a=>a.name).join(', ')||'Avvia Spotify sul telefono');
@@ -570,7 +581,7 @@ function spEnsureAutoRefresh(){
  spTimer=setInterval(spAutoRefresh,7000);
 }
 async function spAutoRefresh(){
- if(spPolling||document.hidden||!spGet('access'))return;
+ if(spPolling||document.hidden||!(spGet('access')||spGet('refresh')))return;
  if(document.activeElement?.matches('#spotify-panel input, #spotify-panel select'))return;
  spPolling=true;
  try{
@@ -600,7 +611,7 @@ function spShowStartupPrompt(){
  document.body.appendChild(overlay);
 }
 async function spCheckAtStartup(){
- if(!spGet('access')||spPromptDismissed)return;
+ if(!(spGet('access')||spGet('refresh'))||spPromptDismissed)return;
  try{
   const data=await spApi('me/player/devices');
   if(!data?.devices?.length)spShowStartupPrompt();
@@ -692,6 +703,9 @@ function showStartupFallback(error){
 }
 Promise.resolve().then(()=>spAuthCallback()).then(handled=>{
  if(!handled)home();
- spCheckAtStartup().catch(e=>console.warn('Spotify availability:',e));
+ if(spGet('access')||spGet('refresh')){
+  spAccess().then(()=>spAutoRefresh()).catch(e=>console.warn('Spotify auto renewal:',e.message));
+ }
+ // Never interrupt a workout with a Spotify device prompt.
 }).catch(showStartupFallback);
 </script></body></html>
