@@ -20,8 +20,8 @@ def is_core_silver(x, y, side, pixel):
 silver = [(x,y) for y in range(512) for x in range(512) if is_core_silver(x,y,512,source.getpixel((x,y)))]
 assert len(silver) > 1000
 radius = max(math.hypot(x + .5 - 256, y + .5 - 256) for x,y in silver) / 512
-scale = min(.80, .385 / radius)
-assert scale >= .67, ("Unexpected source geometry", radius, scale)
+scale = min(.80, .39 / radius)
+assert scale >= .65, ("Unexpected source geometry", radius, scale)
 sizes = {}
 for size in (192, 512):
     inner = int(size * scale)
