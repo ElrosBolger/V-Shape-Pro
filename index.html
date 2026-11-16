@@ -461,7 +461,7 @@ async function spPlaylist(uri){
  }catch(e){spError(e)}
 }
 function spVolume(v){spControl('me/player/volume?volume_percent='+Math.round(v),'PUT')}
-async async function spPauseOnFinish(){
+async function spPauseOnFinish(){
  if(!spGet('access'))return;
  try{await spApi('me/player/pause','PUT')}catch(e){console.warn('Spotify: pausa non disponibile',e)}
 }
