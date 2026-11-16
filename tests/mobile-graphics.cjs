@@ -33,17 +33,18 @@ const fixture=active=>({week:1,loads:{'A:1:0':'40'},records:[{date:'2026-11-10T1
     }
    }).observe(document,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
   },{stored});
-  const page=await context.newPage(),errors=[];
+  const page=await context.newPage(),errors=[],consoleErrors=[];
   page.on('pageerror',e=>errors.push(e.message));
+  page.on('console',m=>{if(m.type()==='error'&&!(failImage&&m.text().includes('Failed to load resource')))consoleErrors.push(m.text())});
   if(failImage)await page.route('**/splash-1080x2400.jpg',route=>route.abort());
   await page.goto(base+query,{waitUntil:'domcontentloaded'});
-  return {name,page,context,stored,errors};
+  return {name,page,context,stored,errors,consoleErrors};
  }
  async function finish(c,details={}){
-  assert.deepEqual(c.errors,[],c.name+' JavaScript errors');
+  assert.deepEqual(c.errors,[],c.name+' JavaScript errors');assert.deepEqual(c.consoleErrors,[],c.name+' console errors');
   assert.equal(await c.page.evaluate(()=>localStorage.getItem('vshape_final_v1')),c.stored,c.name+' changed workout data');
   const events=await c.page.evaluate(()=>window.__introEvents);
-  cases.push({name:c.name,status:'passed',...details,events,javascriptErrors:c.errors,storedDataUnchanged:true});
+  cases.push({name:c.name,status:'passed',...details,events,javascriptErrors:c.errors,consoleErrors:c.consoleErrors,storedDataUnchanged:true});
   await c.context.close();
  }
  try{
