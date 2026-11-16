@@ -173,6 +173,8 @@ async function spPlaylist(uri){
 function spVolume(v){spControl('me/player/volume?volume_percent='+Math.round(v),'PUT')}
 function spLogout(){spClear();spCurrent=null;spPlaylists=[];spDevices=[];spMessage='Spotify scollegato da questa PWA.';musicView()}
 function musicView(){
+ spEnsureAutoRefresh();
+ spLastSignature=spSignature();
  const connected=!!spGet('access');
  const item=spCurrent?.item;
  const name=spEscape(item?.name||'Nessun brano attivo');
@@ -180,7 +182,7 @@ function musicView(){
  const device=spCurrent?.device;
  const art=item?.album?.images?.[1]?.url;
  app.innerHTML=header('Spotify Premium','La musica resta su Spotify. Il diario allenamenti rimane indipendente.')+
- '<div class="card"><h3>🎧 Spotify × V-Shape Pro</h3>'+
+ '<div class="card" id="spotify-panel"><h3>🎧 Spotify × V-Shape Pro</h3>'+
  (spMessage?'<p class="hint">'+spEscape(spMessage)+'</p>':'')+
  (!connected?'<p>Collega il tuo account Premium per controllare la riproduzione sui dispositivi Spotify Connect compatibili.</p><button class="btn primary wide" onclick="spLogin()">Collega Spotify</button>':
  '<div class="row" style="align-items:center;gap:14px;margin:14px 0">'+(art?'<img src="'+spEscape(art)+'" alt="Copertina album" style="width:76px;height:76px;border-radius:12px">':'<span style="font-size:44px">🎵</span>')+
@@ -194,6 +196,43 @@ function musicView(){
 }
 
 
+/* Update only the music screen; never interrupt exercise entry or rest timers. */
+let spPolling=false;
+let spLastSignature='';
+function spSignature(){
+ return JSON.stringify({
+  track:spCurrent?.item?.id||null,
+  playing:spCurrent?.is_playing??null,
+  device:spCurrent?.device?.id||null,
+  volume:spCurrent?.device?.volume_percent??null,
+  devices:spDevices.map(d=>[d.id,d.is_active,d.volume_percent]),
+  playlists:spPlaylists.map(p=>p?.id),
+  message:spMessage
+ });
+}
+function spEnsureAutoRefresh(){
+ if(spTimer)return;
+ spTimer=setInterval(spAutoRefresh,7000);
+}
+async function spAutoRefresh(){
+ if(spPolling||document.hidden||!document.getElementById('spotify-panel')||!spGet('access'))return;
+ if(document.activeElement?.matches('#spotify-panel input, #spotify-panel select'))return;
+ spPolling=true;
+ try{
+  const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices')]);
+  if(results[0].status==='fulfilled')spCurrent=results[0].value;
+  if(results[1].status==='fulfilled')spDevices=results[1].value?.devices||[];
+  const next=spSignature();
+  if(next!==spLastSignature){
+   spLastSignature=next;
+   const position=window.scrollY;
+   musicView();
+   window.scrollTo(0,position);
+  }
+ }catch(e){/* Keep the current player visible if Spotify is temporarily unreachable. */}
+ finally{spPolling=false}
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)spAutoRefresh()});
 /* Spotify availability prompt: API reports devices, not whether Android app is closed. */
 let spPromptDismissed=false;
 function spPromptClose(){spPromptDismissed=true;document.getElementById('sp-start-prompt')?.remove()}
