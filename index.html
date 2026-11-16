@@ -631,5 +631,17 @@ function appGoBack(){
   }finally{restoring=false}
  });
 })();
-spAuthCallback().then(handled=>{if(!handled)home();spCheckAtStartup()});
+/* Keep the app usable if Spotify OAuth fails or browser storage is restricted. */
+function showStartupFallback(error){
+ console.error('V-Shape Pro startup:',error);
+ try{home()}catch(renderError){
+  console.error('V-Shape Pro render:',renderError);
+  const root=document.getElementById('app');
+  if(root)root.innerHTML='<div class="card"><h2>Impossibile caricare questa schermata</h2><p>Non cancellare i dati dell’app. Ricarica la pagina per riprovare.</p><button class="btn primary wide" onclick="location.reload()">Ricarica V-Shape Pro</button></div>';
+ }
+}
+Promise.resolve().then(()=>spAuthCallback()).then(handled=>{
+ if(!handled)home();
+ spCheckAtStartup().catch(e=>console.warn('Spotify availability:',e));
+}).catch(showStartupFallback);
 </script></body></html>
