@@ -512,12 +512,12 @@ function spUpdateMini(){
  const signature=[item.id,spCurrent.is_playing,art].join('|');
  if(bar.dataset.signature===signature)return;
  bar.dataset.signature=signature;
- bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'toggle\')" aria-label="'+(spCurrent.is_playing?'Pausa':'Riprendi')+'">'+(spCurrent.is_playing?'⏸':'▶')+'</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
+ bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'previous\')" aria-label="Brano precedente" title="Brano precedente">⏮</button><button class="sp-mini-action" onclick="spQuickControl(\'toggle\')" aria-label="'+(spCurrent.is_playing?'Pausa':'Riprendi')+'">'+(spCurrent.is_playing?'⏸':'▶')+'</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
 }
 async function spQuickControl(action){
  if(!spCurrent)return;
  if(action==='toggle'){action=spCurrent.is_playing?'pause':'play';spCurrent.is_playing=action==='play';spUpdateMini()}
- try{await spApi('me/player/'+action,action==='next'?'POST':'PUT');await spAutoRefresh()}
+ try{await spApi('me/player/'+action,(action==='next'||action==='previous')?'POST':'PUT');await spAutoRefresh()}
  catch(e){if(action==='play'&&spPlaybackUnavailable(e))spOfferOpenSpotify();else spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
 }
 setInterval(()=>{if(spGet('access')&&!document.hidden)spUpdateMini()},1500);
