@@ -1,4 +1,4 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#070713"><title>V-SHAPE · System Ascension</title><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="theme-color" content="#070713"><style>
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>V-SHAPE · System Ascension</title><link rel="manifest" href="./manifest.webmanifest"><meta name="theme-color" content="#000000"><link rel="icon" href="./favicon-32.png" type="image/png" sizes="32x32"><link rel="icon" href="./icon-192.png" type="image/png" sizes="192x192"><link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180"><link rel="preload" as="image" href="./splash-1080x2400.jpg"><style>
 :root{color-scheme:dark;--bg:#0b1220;--card:#172438;--card2:#20314a;--line:#31445d;--ink:#f2f7ff;--muted:#a8bbd1;--accent:#54d6c2;--blue:#7cb8ff;--amber:#ffc978}*{box-sizing:border-box}body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}.wrap{max-width:680px;margin:auto;padding:18px 16px 42px}.app-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin:0 0 16px}.app-menu[hidden]{display:none}#internal-back[hidden]{display:none}.top #internal-back{margin-left:auto;padding:10px 12px;font-size:13px}.top:has(#internal-back:not([hidden])) .brand{font-size:19px}.top:has(#internal-back:not([hidden])) #menu-toggle{padding:10px 12px;font-size:13px}.app-menu .btn{text-align:left}.app-menu .btn:last-child{grid-column:1/-1}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{font-size:22px;font-weight:850;letter-spacing:-.6px}.brand b{color:var(--accent)}.muted{color:var(--muted)}.small{font-size:12px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.8px;color:var(--accent);font-weight:800}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;margin:12px 0}.hero{background:linear-gradient(135deg,#1d3950,#15253b)}h1{font-size:28px;line-height:1.15;margin:9px 0}h2{font-size:21px;margin:0 0 9px}h3{font-size:17px;margin:0 0 5px}p{margin:7px 0 12px}.btn{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card2);color:var(--ink);font-weight:750}.btn.primary{background:var(--accent);color:#06221e;border-color:var(--accent)}.btn.ghost{background:transparent}.btn.wide{width:100%}.btn.smallbtn{padding:7px 10px;font-size:13px}.row{display:flex;gap:10px;align-items:center}.spread{justify-content:space-between}.stack{display:grid;gap:10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pill{border:1px solid var(--line);border-radius:30px;padding:5px 9px;color:var(--muted);font-size:12px}.pill.on{border-color:var(--accent);color:var(--accent)}.bar{height:7px;background:#304159;border-radius:30px;overflow:hidden}.bar>i{display:block;background:var(--accent);height:100%;transition:width .2s}.hidden{display:none!important}.exercise{padding:13px 0;border-bottom:1px solid var(--line)}.exercise:last-child{border:0}.exercise strong{display:block}.exercise .small{color:var(--muted)}input,select{width:100%;background:#0e1a2b;color:var(--ink);border:1px solid #42556e;border-radius:11px;padding:12px;min-width:0}label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}.timer{font-size:64px;line-height:1.15;font-variant-numeric:tabular-nums;font-weight:850;text-align:center;color:var(--accent);margin:12px 0}.tip{border:1px solid #3c8d85;background:#143a3b;padding:14px;border-radius:14px;margin:12px 0}.warn{border-color:#a77b3e;background:#3b3024}.nav{position:fixed;bottom:0;left:0;right:0;background:#0d1828ed;backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:center;gap:8px;padding:10px 12px max(10px,env(safe-area-inset-bottom))}.nav button{flex:1;max-width:210px;font-size:12px;padding:10px 4px}.check{color:var(--accent)}.hint{color:var(--amber)}.compact{margin:0}.week{display:flex;gap:8px;flex-wrap:wrap}.week button{min-width:42px}.week button.selected{background:var(--accent);color:#09231f}.subtle{font-size:13px;color:var(--muted)}.section{margin-top:24px}.count{font-size:12px;color:var(--muted)}@media(min-width:600px){.wrap{padding-top:28px}.timer{font-size:76px}}
 
 .calendar-fab{position:fixed;right:14px;bottom:18px;z-index:10;background:#2563eb;color:white;border:0;border-radius:999px;padding:13px 17px;font-weight:700;box-shadow:0 6px 25px #0008;cursor:pointer}
@@ -83,7 +83,79 @@ input::placeholder{color:#a79ab8}
 .sp-mini-action{background:#7044ad!important}
 @media(max-width:390px){.wrap{padding-left:13px;padding-right:13px}.card{padding:15px}.sp-mini-action{min-width:39px;min-height:42px}.sp-mini-open img{width:36px;height:36px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
-</style></head><body><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>ASCENSION</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="internal-back" type="button" onclick="appGoBack()" hidden aria-label="Torna alla schermata precedente">← Indietro</button><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
+
+/* Original artwork, contained in a black viewport; no crop or stretching. */
+#vs-launch-splash{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#000;pointer-events:none;opacity:1;transition:opacity .22s ease;animation:vs-splash-expire 1.4s step-end forwards!important}
+#vs-launch-splash[hidden]{display:none}
+#vs-launch-splash img{display:block;width:100%;height:100%;min-width:0;min-height:0;object-fit:contain;object-position:center;background:#000;border:0;border-radius:0;box-shadow:none}
+#vs-launch-splash.vs-splash-out{opacity:0}
+@keyframes vs-splash-expire{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){#vs-launch-splash{transition:none}}
+</style></head><body><script>
+/* HTML introduction only: Android's native launch screen is OS-controlled.
+   Read workout state without writing or migrating it. Never delay a resumption,
+   OAuth callback, history restoration or an interaction with the app. */
+(() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('vshape_final_v1') || 'null');
+    const query = new URLSearchParams(location.search);
+    const navigation = performance.getEntriesByType('navigation')[0];
+    if (saved?.active || query.has('code') || query.has('error') ||
+        navigation?.type === 'back_forward' || document.hidden) return;
+  } catch (_) { return; }
+
+  const started = performance.now();
+  const splash = document.createElement('div');
+  splash.id = 'vs-launch-splash';
+  splash.hidden = true;
+  splash.setAttribute('aria-hidden', 'true');
+  const artwork = document.createElement('img');
+  artwork.alt = '';
+  artwork.width = 1080;
+  artwork.height = 2400;
+  artwork.decoding = 'async';
+  artwork.fetchPriority = 'high';
+  let ended = false;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const remove = () => splash.remove();
+  const dismiss = (immediate = false) => {
+    if (ended) return;
+    ended = true;
+    clearTimeout(deadline);
+    window.removeEventListener('pagehide', abort);
+    window.removeEventListener('pageshow', onPageShow);
+    document.removeEventListener('visibilitychange', onVisibility);
+    document.removeEventListener('pointerdown', abort, true);
+    document.removeEventListener('keydown', abort, true);
+    if (immediate || reducedMotion || splash.hidden) remove();
+    else {
+      splash.classList.add('vs-splash-out');
+      setTimeout(remove, 240);
+    }
+  };
+  const abort = () => dismiss(true);
+  const onPageShow = event => { if (event.persisted) abort(); };
+  const onVisibility = () => { if (document.hidden) abort(); };
+  // Armed before app initialization, and independent of image/network success.
+  const deadline = setTimeout(() => dismiss(), 1100);
+  const reveal = () => {
+    if (ended) return;
+    // A late image must never cover an interface the user has already reached.
+    if (performance.now() - started > 800) abort();
+    else splash.hidden = false;
+  };
+  artwork.addEventListener('load', reveal, {once: true});
+  artwork.addEventListener('error', abort, {once: true});
+  window.addEventListener('pagehide', abort);
+  window.addEventListener('pageshow', onPageShow);
+  document.addEventListener('visibilitychange', onVisibility);
+  document.addEventListener('pointerdown', abort, true);
+  document.addEventListener('keydown', abort, true);
+  splash.appendChild(artwork);
+  document.body.appendChild(splash);
+  artwork.src = './splash-1080x2400.jpg';
+})();
+</script><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>ASCENSION</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="internal-back" type="button" onclick="appGoBack()" hidden aria-label="Torna alla schermata precedente">← Indietro</button><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
 'use strict';
 const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],profile:{},warmDone:{}};
 let state;try{state={...initial,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch{state={...initial}};
@@ -317,7 +389,7 @@ function restFinishedAlert(end){
 }
 function trainView(){let a=state.active,d=days[a.day],e=d.ex[a.ex],last=a.set===e.sets-1,next=d.ex[a.ex+1];app.innerHTML=header('Giorno '+a.day+' · '+d.name,`Esercizio ${a.ex+1}/${d.ex.length} · Serie ${a.set+1}/${e.sets}`)+`<div class="bar"><i style="width:${Math.round((a.ex+a.set/e.sets)/d.ex.length*100)}%"></i></div><div class="card hero"><div class="eyebrow">${last?'Ultima serie di questo esercizio':'Serie allenante'}</div><h1>${esc(a.week<=4?e.name:e.alt)}</h1><div class="row"><span class="pill">${e.reps} rip.</span><span class="pill">RIR ~${e.rir}</span><span class="pill">${e.rest}s recupero</span></div><p class="muted">${esc(e.note)}</p></div><div class="card"><div class="grid"><div><label for="kg">Peso (kg; per lato se indicato)</label><input id="kg" type="text" inputmode="decimal" placeholder="Es. 45" aria-describedby="kg-help" value="${esc(displayLoad(previousLoad(a)))}"><span id="kg-help" class="small muted">Un solo valore, non un intervallo.</span></div><div><label for="reps">Ripetizioni completate</label><input id="reps" type="number" min="1" max="100" placeholder="Es. 10"></div></div><div style="margin-top:10px"><label for="rir">Ripetizioni in riserva (RIR)</label><select id="rir"><option value="2">2 · obiettivo</option><option value="3">3 · facile</option><option value="1">1 · impegnativa</option><option value="0">0 · cedimento tecnico</option><option value="4+">4+ · troppo facile</option></select></div><button class="btn primary wide" onclick="finishSet()" style="margin-top:15px">✓ Completa serie ${a.set+1}</button></div>${lastExerciseHTML(a.day,a.week,a.ex)}${progAdvice(a.day,a.week,a.ex)}${last?`<div class="tip"><b>↗ Prepara la transizione</b><p>${next?`Dopo questa serie: <b>${esc(a.week<=4?next.name:next.alt)}</b> · ${next.sets} × ${next.reps}. ${esc(next.tip)}`:'È l’ultimo esercizio: seguirà il defaticamento facoltativo.'}</p></div>`:''}<button class="btn ghost wide" onclick="abandon()">Interrompi seduta</button>`}
 function finishSet(){let a=state.active,e=days[a.day].ex[a.ex],kg=document.getElementById('kg').value.trim(),r=Number(document.getElementById('reps').value),rir=document.getElementById('rir').value;if(!validWeight(kg)){showSetError('Indica un solo peso in kg, ad esempio 45. Se l’esercizio è a corpo libero, inserisci 0.','kg');return}if(!Number.isInteger(r)||r<1||r>100){showSetError('Indica le ripetizioni effettivamente completate, da 1 a 100.','reps');return}document.querySelectorAll('.vs-field-error').forEach(n=>n.remove());a.entries.push({exercise:blockEx(e),kg,reps:r,rir,day:a.day,week:a.week,at:new Date().toISOString()});state.loads[`${a.day}:${a.week<=4?'1':'2'}:${a.ex}`]=kg;let last=a.set===e.sets-1;let next=days[a.day].ex[a.ex+1];a.set++;if(last){a.ex++;a.set=0}if(a.ex>=days[a.day].ex.length){a.stage='cool';save();coolView();return}a.stage='rest';a.restEnd=Date.now()*1+e.rest*1000;a.transition=last;a.from=e.name;a.nextName=blockEx(next||days[a.day].ex[a.ex]);a.nextTip=next?.tip||'';save();restView()}
-let ticker=null;function restView(){clearInterval(ticker);let a=state.active;if(!a||a.stage!=='rest')return;app.innerHTML=header(a.transition?'Recupero + spostamento':'Recupero tra le serie','Il recupero decorre dalla fine della serie appena completata.')+`<div class="card"><div class="timer" id="clock">--:--</div><p class="muted" style="text-align:center">${a.transition?'Puoi spostarti e preparare la macchina successiva.':'Respira e preparati per la prossima serie.'}</p>${a.transition?`<div class="tip"><div class="eyebrow">Prossimo esercizio</div><h2>${esc(a.nextName)}</h2><p>${esc(a.nextTip)}</p></div>`:`<div class="tip"><b>Prossima serie</b><p>${esc(blockEx(days[a.day].ex[a.ex]))} · serie ${a.set+1}</p></div>`}<div class="grid"><button class="btn" onclick="adjustRest(-15)">−15 sec</button><button class="btn" onclick="adjustRest(15)">+15 sec</button></div><button class="btn primary wide" id="ready" onclick="endRest()" style="margin-top:12px">Sono pronto · Continua →</button><p class="subtle" style="text-align:center">Il timer non forza il passaggio: puoi completare lo spostamento prima di continuare.</p></div>`;function update(){if(!state.active||state.active.stage!=='rest'){clearInterval(ticker);return}let sec=Math.max(0,Math.ceil((state.active.restEnd-Date.now())/1000));document.getElementById('clock').textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;if(sec===0){document.getElementById('ready').textContent='Recupero terminato · Inizia quando sei pronto →';restFinishedAlert(state.active.restEnd);clearInterval(ticker)}}update();ticker=setInterval(update,400)}
+let ticker=null;function restView(){clearInterval(ticker);let a=state.active;if(!a||a.stage!=='rest')return;app.innerHTML=header(a.transition?'Recupero + spostamento':'Recupero tra le serie','Il recupero decorre dalla fine della serie appena completata.')+`<div class="card"><div class="timer" id="clock">--:--</div><p class="muted" style="text-align:center">${a.transition?'Puoi spostarti e preparare la macchina successiva.':'Respira e preparati per la prossima serie.'}</p>${a.transition?`<div class="tip"><div class="eyebrow">Prossimo esercizio</div><h2>${esc(a.nextName)}</h2><p>${esc(a.nextTip)}</p></div>`:`<div class="tip"><b>Prossima serie</b><p>${esc(blockEx(days[a.day].ex[a.ex]))} · serie ${a.set+1}</p></div>`}<div class="grid"><button class="btn" onclick="adjustRest(-15)">−15 sec</button><button class="btn" onclick="adjustRest(15)">+15 sec</button></div><button class="btn primary wide" id="ready" onclick="endRest()" style="margin-top:12px">Sono pronto · Continua →</button><p class="subtle" style="text-align:center">Il timer non forza il passaggio: puoi completare lo spostamento prima di continuare.</p></div>`;function update(){if(!state.active||state.active.stage!=='rest'){clearInterval(ticker);return}let sec=Math.max(0,Math.ceil((state.active.restEnd-Date.now())/1000));const clock=document.getElementById('clock');if(!clock){clearInterval(ticker);return}clock.textContent=`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;if(sec===0){document.getElementById('ready').textContent='Recupero terminato · Inizia quando sei pronto →';restFinishedAlert(state.active.restEnd);clearInterval(ticker)}}update();ticker=setInterval(update,400)}
 function adjustRest(n){state.active.restEnd=Math.max(Date.now(),state.active.restEnd+n*1000);save();restView()}
 function endRest(){clearInterval(ticker);state.active.stage='train';state.active.restEnd=null;save();trainView()}
 function coolView(){let a=state.active,d=days[a.day];app.innerHTML=header('Allenamento completato!','Ottimo. Ora puoi fare qualche minuto di stretching leggero.')+`<div class="card"><h2>Stretching facoltativo · 3–5 min</h2><p class="subtle">Mantieni ogni posizione con una tensione lieve, senza dolore e senza rimbalzi. La flessibilità migliora con costanza, non forzando.</p>${d.cool.map(x=>`<div class="exercise"><strong>${esc(x[0])} · ${x[1]} s circa</strong><div class="small">${esc(x[2])}</div></div>`).join('')}<button class="btn primary wide" onclick="complete()">Salva allenamento ✓</button></div>`}
