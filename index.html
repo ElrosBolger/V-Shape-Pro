@@ -118,7 +118,7 @@ function saveMeasures(){
  for(const [key,label] of [...measureMain,...measureExtra]){
   const el=document.getElementById('m_'+key);if(!el)continue;
   const raw=el.value.trim().replace(',','.');
-  if(raw&&!/^\\d+(?:\\.\\d{1,2})?$/.test(raw)){alert('Controlla il valore di '+label+': inserisci un numero positivo.');el.focus();return}
+  if(raw&&!/^\d+(?:\.\d{1,2})?$/.test(raw)){alert('Controlla il valore di '+label+': inserisci un numero positivo.');el.focus();return}
   const n=Number(raw);
   if(raw&&(n<=0||n>500)){alert('Controlla il valore di '+label+'.');el.focus();return}
   values[key]=raw;
