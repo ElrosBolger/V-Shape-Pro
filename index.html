@@ -145,15 +145,15 @@ async function spApi(path,method='GET',body){
 }
 function spError(e){spMessage=e.message||String(e);musicView()}
 async function spLoad(){
- try{
-  const [playback,devices,playlists]=await Promise.all([
-   spApi('me/player').catch(()=>null),
-   spApi('me/player/devices').catch(()=>({devices:[]})),
-   spApi('me/playlists?limit=30').catch(()=>({items:[]}))
-  ]);
-  spCurrent=playback;spDevices=devices?.devices||[];spPlaylists=playlists?.items||[];
-  spMessage='';musicView();
- }catch(e){spError(e)}
+ if(!spGet('access')){spMessage='Collega Spotify per visualizzare musica e dispositivi.';musicView();return}
+ const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices'),spApi('me/playlists?limit=30')]);
+ const [playback,devices,playlists]=results;
+ if(playback.status==='fulfilled')spCurrent=playback.value;
+ if(devices.status==='fulfilled')spDevices=devices.value?.devices||[];
+ if(playlists.status==='fulfilled')spPlaylists=playlists.value?.items||[];
+ const failures=results.map((v,i)=>v.status==='rejected'?['Riproduzione','Dispositivi','Playlist'][i]+': '+v.reason.message:null).filter(Boolean);
+ spMessage=failures.length?'Spotify ha restituito un errore: '+failures.join(' · '):'';
+ musicView();
 }
 async function spControl(path,method='PUT',body){
  try{await spApi(path,method,body);setTimeout(spLoad,450)}catch(e){spError(e)}
