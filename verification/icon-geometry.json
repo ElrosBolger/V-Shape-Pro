@@ -1,0 +1,25 @@
+{
+  "source": "original supplied icon-512.png",
+  "scale": 0.67866,
+  "previous_artwork_side_512": 280,
+  "sizes": {
+    "192": {
+      "artwork_side": 130,
+      "canvas_side": 192,
+      "silver_max_radius": 74.3,
+      "safe_radius": 76.80000000000001
+    },
+    "512": {
+      "artwork_side": 346,
+      "canvas_side": 512,
+      "silver_max_radius": 198.742,
+      "safe_radius": 204.8
+    }
+  },
+  "application_script_unchanged": true,
+  "original_source_hashes": {
+    "icon-512.png": "6fd924c63838ae39d9b29631461485b592985bfb43ab6902cc8ce98a339611e9",
+    "icon-192.png": "1e7ce913332afc7fb42f4a29275901f1e7159a959a736b107978236c1de24ba2",
+    "splash-1080x2400.jpg": "95f720b2838466132fad1e3a7d55bcd2bd5e89815f410b09f0dde24cb0b88e2d"
+  }
+}

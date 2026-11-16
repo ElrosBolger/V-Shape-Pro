@@ -1,0 +1,286 @@
+{
+  "status": "passed",
+  "engine": "Chromium via Playwright 1.56.1",
+  "syntheticDataOnly": true,
+  "nativeAndroidNotEmulated": true,
+  "authenticatedSpotifyNotTested": true,
+  "cases": [
+    {
+      "name": "active workout 432x960",
+      "status": "passed",
+      "geometry": {
+        "imageCount": 1,
+        "source": "./splash-1080x2400.jpg",
+        "naturalWidth": 1080,
+        "naturalHeight": 2400,
+        "fit": "contain",
+        "background": "rgb(0, 0, 0)",
+        "transition": "0.4s",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 432,
+          "height": 960
+        },
+        "paintedWidth": 432,
+        "paintedHeight": 960,
+        "viewport": {
+          "width": 432,
+          "height": 960
+        }
+      },
+      "holdMs": 2500,
+      "fadeAndCleanupMs": 420,
+      "events": [
+        {
+          "phase": "added",
+          "time": 20.60000000000582
+        },
+        {
+          "phase": "visible",
+          "time": 28.19999999999709
+        },
+        {
+          "phase": "fade",
+          "time": 2528.4000000000087
+        },
+        {
+          "phase": "removed",
+          "time": 2948.699999999997
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "active workout 360x800",
+      "status": "passed",
+      "geometry": {
+        "imageCount": 1,
+        "source": "./splash-1080x2400.jpg",
+        "naturalWidth": 1080,
+        "naturalHeight": 2400,
+        "fit": "contain",
+        "background": "rgb(0, 0, 0)",
+        "transition": "0.4s",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 360,
+          "height": 800
+        },
+        "paintedWidth": 360,
+        "paintedHeight": 800,
+        "viewport": {
+          "width": 360,
+          "height": 800
+        }
+      },
+      "holdMs": 2500,
+      "fadeAndCleanupMs": 420,
+      "events": [
+        {
+          "phase": "added",
+          "time": 10.5
+        },
+        {
+          "phase": "visible",
+          "time": 22.39999999999418
+        },
+        {
+          "phase": "fade",
+          "time": 2522.7999999999884
+        },
+        {
+          "phase": "removed",
+          "time": 2943.0999999999913
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "active workout 960x432",
+      "status": "passed",
+      "geometry": {
+        "imageCount": 1,
+        "source": "./splash-1080x2400.jpg",
+        "naturalWidth": 1080,
+        "naturalHeight": 2400,
+        "fit": "contain",
+        "background": "rgb(0, 0, 0)",
+        "transition": "0.4s",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 960,
+          "height": 432
+        },
+        "paintedWidth": 194.4,
+        "paintedHeight": 432,
+        "viewport": {
+          "width": 960,
+          "height": 432
+        }
+      },
+      "holdMs": 2500,
+      "fadeAndCleanupMs": 420,
+      "events": [
+        {
+          "phase": "added",
+          "time": 10.900000000008731
+        },
+        {
+          "phase": "visible",
+          "time": 22.40000000000873
+        },
+        {
+          "phase": "fade",
+          "time": 2522.800000000003
+        },
+        {
+          "phase": "removed",
+          "time": 2943.199999999997
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "active training workout introduction",
+      "status": "passed",
+      "dismissedOnInteraction": true,
+      "events": [
+        {
+          "phase": "added",
+          "time": 10.099999999991269
+        },
+        {
+          "phase": "visible",
+          "time": 22.5
+        },
+        {
+          "phase": "removed",
+          "time": 43.59999999999127
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "recovery already expired",
+      "status": "passed",
+      "introductionSkipped": true,
+      "events": [],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "recovery ending within intro",
+      "status": "passed",
+      "introductionSkipped": true,
+      "events": [],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "Spotify error callback",
+      "status": "passed",
+      "introductionSkipped": true,
+      "events": [],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "Spotify code callback",
+      "status": "passed",
+      "introductionSkipped": true,
+      "events": [],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "immediate resume link",
+      "status": "passed",
+      "introductionSkipped": true,
+      "events": [],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "reduced motion",
+      "status": "passed",
+      "noTransition": true,
+      "events": [
+        {
+          "phase": "added",
+          "time": 11.80000000000291
+        },
+        {
+          "phase": "visible",
+          "time": 24.09999999999127
+        },
+        {
+          "phase": "removed",
+          "time": 2524.399999999994
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "image loading failure",
+      "status": "passed",
+      "usableAfterImageFailure": true,
+      "events": [
+        {
+          "phase": "added",
+          "time": 13.10000000000582
+        },
+        {
+          "phase": "removed",
+          "time": 18.10000000000582
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
+      "name": "cached application offline",
+      "status": "passed",
+      "offlineApplicationAndOriginalArtwork": true,
+      "events": [
+        {
+          "phase": "added",
+          "time": 10.900000000008731
+        },
+        {
+          "phase": "visible",
+          "time": 14.60000000000582
+        },
+        {
+          "phase": "fade",
+          "time": 2514.800000000003
+        },
+        {
+          "phase": "removed",
+          "time": 2935
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    }
+  ]
+}
