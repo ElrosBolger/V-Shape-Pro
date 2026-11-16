@@ -514,11 +514,26 @@ function spUpdateMini(){
  bar.dataset.signature=signature;
  bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'previous\')" aria-label="Brano precedente" title="Brano precedente">⏮</button><button class="sp-mini-action" onclick="spQuickControl(\'toggle\')" aria-label="'+(spCurrent.is_playing?'Pausa':'Riprendi')+'">'+(spCurrent.is_playing?'⏸':'▶')+'</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
 }
+let spQuickBusy=false;
+let spQuickSyncUntil=0;
 async function spQuickControl(action){
- if(!spCurrent)return;
- if(action==='toggle'){action=spCurrent.is_playing?'pause':'play';spCurrent.is_playing=action==='play';spUpdateMini()}
- try{await spApi('me/player/'+action,(action==='next'||action==='previous')?'POST':'PUT');await spAutoRefresh()}
- catch(e){if(action==='play'&&spPlaybackUnavailable(e))spOfferOpenSpotify();else spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
+ if(!spCurrent||spQuickBusy)return;
+ const nextAction=action==='toggle'?(spCurrent.is_playing?'pause':'play'):action;
+ spQuickBusy=true;
+ try{
+  await spApi('me/player/'+nextAction,(nextAction==='next'||nextAction==='previous')?'POST':'PUT');
+  if(nextAction==='play'||nextAction==='pause'){
+   spCurrent={...spCurrent,is_playing:nextAction==='play'};
+   spQuickSyncUntil=Date.now()+1800;
+   spUpdateMini();
+  }
+  // Spotify Connect can report the old state briefly after accepting a command.
+  setTimeout(()=>{spAutoRefresh()},1900);
+ }catch(e){
+  if(nextAction==='play'&&spPlaybackUnavailable(e))spOfferOpenSpotify();
+  else spMessage='Controllo Spotify non disponibile: '+e.message;
+  spAutoRefresh();
+ }finally{spQuickBusy=false}
 }
 setInterval(()=>{if(spGet('access')&&!document.hidden)spUpdateMini()},1500);
 async function spPauseOnFinish(){
@@ -590,7 +605,7 @@ async function spAutoRefresh(){
  spPolling=true;
  try{
   const results=await Promise.allSettled([spApi('me/player'),spApi('me/player/devices')]);
-  if(results[0].status==='fulfilled'&&Date.now()>spSeekPendingUntil){spCurrent=results[0].value;spProgressAt=Date.now();spUpdateMini();}
+  if(results[0].status==='fulfilled'&&Date.now()>spSeekPendingUntil&&Date.now()>spQuickSyncUntil&&!spQuickBusy){spCurrent=results[0].value;spProgressAt=Date.now();spUpdateMini();}
   if(results[1].status==='fulfilled')spDevices=results[1].value?.devices||[];
   const next=spSignature();
   if(document.getElementById('spotify-panel')&&next!==spLastSignature){
