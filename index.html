@@ -76,7 +76,7 @@ function begin(k){const locked=workoutLockMessage();if(locked){alert(locked);ret
 function resume(){let a=state.active;if(!a)return home();if(a.stage==='warm')warmView();else if(a.stage==='train')trainView();else if(a.stage==='rest')restView();else if(a.stage==='cool')coolView()}
 let warmTicker=null;
 function warmTimeFormat(sec){sec=Math.max(0,Math.ceil(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
-function warmIsTimed(x){return /camminata|cyclette|ellittica/i.test(x[0])}
+function warmIsTimed(x){return Number.isFinite(Number(x[1]))&&Number(x[1])>0}
 function warmSeconds(a,x){
  const t=a.warmTimer;
  if(!t||t.step!==a.warm)return x[1];
