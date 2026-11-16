@@ -33,6 +33,9 @@ input::placeholder{color:#8d88aa}.pill{background:#191832;border-color:#484066;c
 #back-to-top{background:#282148;border-color:#8066c5;color:#f4ecff;box-shadow:0 6px 22px #0009}
 .vs-modal{background:#050411d9}.vs-dialog{background:linear-gradient(140deg,#241d47,#111226);border-color:#8068b6;box-shadow:0 20px 80px #000b}.vs-dialog-icon{background:#4a315c;color:#d8b5ff}.vs-dialog p{color:#d2cae8}.vs-field-error{color:#ffb8cf}.vs-invalid{border-color:#f08eb2!important;box-shadow:0 0 0 1px #f08eb255}
 @media(prefers-reduced-motion:reduce){.btn{transition:none}}
+
+/* Diario compatto e conferme integrate nello stile dell'app */
+.diary-actions{flex-wrap:wrap;margin:14px 0 18px}.diary-session summary,.diary-manage summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;list-style:none}.diary-session summary::-webkit-details-marker,.diary-manage summary::-webkit-details-marker{display:none}.diary-session summary:after,.diary-manage summary:after{content:'⌄';color:#c6b1ff;font-size:22px;flex:none}.diary-session[open] summary:after,.diary-manage[open] summary:after{transform:rotate(180deg)}.diary-summary{display:flex;flex-direction:column;gap:3px}.diary-entries{margin-top:16px;border-top:1px solid #40375f;padding-top:6px}.diary-manage{margin-top:20px}.diary-manage summary{flex-wrap:wrap}.diary-manage-body{padding-top:16px}.diary-manage-body .grid{margin:14px 0}.diary-manage-body .grid label{min-width:0}.diary-manage-body input{width:100%;max-width:100%;min-width:0}.vs-dialog-actions{display:flex;gap:10px;margin-top:22px}.vs-dialog-actions .btn{flex:1;min-width:0}.btn.vs-danger{background:linear-gradient(140deg,#743451,#50233f);border-color:#b76b91;color:#fff0f6}.vs-dialog{width:min(92vw,420px);max-height:85dvh;overflow:auto}.vs-dialog p{line-height:1.6}.diary-empty{padding:26px 18px;text-align:center}@media(max-width:390px){.vs-dialog-actions{flex-direction:column}.diary-manage-body .grid{grid-template-columns:1fr}}
 </style></head><body><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>PRO</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
 'use strict';
 const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],profile:{},warmDone:{}};
@@ -51,6 +54,21 @@ function appNotice(message,title='Controlla i dati'){
  const onKey=e=>{if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();close()}};
  ok.addEventListener('click',close);document.addEventListener('keydown',onKey);
  panel.append(ico,heading,body,ok);overlay.append(panel);document.body.append(overlay);ok.focus();
+}
+function appConfirm(message,onConfirm,title='Conferma eliminazione'){
+ document.getElementById('vs-modal')?.remove();
+ const overlay=document.createElement('div');overlay.id='vs-modal';overlay.className='vs-modal';
+ const panel=document.createElement('section');panel.className='vs-dialog';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','vs-dialog-title');
+ const heading=document.createElement('h2');heading.id='vs-dialog-title';heading.textContent=title;
+ const body=document.createElement('p');body.textContent=String(message);
+ const actions=document.createElement('div');actions.className='vs-dialog-actions';
+ const cancel=document.createElement('button');cancel.className='btn';cancel.textContent='Annulla';
+ const yes=document.createElement('button');yes.className='btn vs-danger';yes.textContent='Elimina definitivamente';
+ const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey)};
+ const onKey=e=>{if(e.key==='Escape'){e.preventDefault();close()}};
+ cancel.onclick=close;yes.onclick=()=>{close();onConfirm()};
+ overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+ document.addEventListener('keydown',onKey);actions.append(cancel,yes);panel.append(heading,body,actions);overlay.append(panel);document.body.append(overlay);cancel.focus();
 }
 const alert=appNotice;
 function showSetError(message,field){const el=document.getElementById(field);document.querySelectorAll('.vs-field-error').forEach(n=>n.remove());document.querySelectorAll('.vs-invalid').forEach(n=>n.classList.remove('vs-invalid'));if(el){el.classList.add('vs-invalid');const msg=document.createElement('div');msg.className='vs-field-error';msg.setAttribute('role','alert');msg.textContent=message;el.insertAdjacentElement('afterend',msg);el.focus()}else appNotice(message)}
@@ -97,22 +115,23 @@ function todayWorkout(){const today=localDay(new Date());return state.records.fi
 function workoutLockMessage(){const r=todayWorkout();return r?'Oggi hai già registrato il Giorno '+r.day+'. Puoi consultarlo nel Diario o nel Calendario. Per ripetere una simulazione, elimina prima il salvataggio dalla gestione test.':null}
 function showTodayWorkout(){const r=todayWorkout();if(!r)return historyView();historyView();const list=document.querySelectorAll('details.card');for(const el of list){if(el.textContent.includes('Giorno '+r.day)||el.textContent.includes(r.day+' ·')){el.open=true;break}}}
 function resetWorkoutRange(){
- if(state.active){alert('Hai una seduta in corso. Termina o interrompi la seduta prima di eliminare allenamenti salvati.');return}
+ if(state.active){appNotice('Termina o interrompi prima la seduta in corso.');return}
  const from=document.getElementById('reset-from')?.value,to=document.getElementById('reset-to')?.value;
- if(!from||!to||from>to){alert('Seleziona un intervallo valido: data iniziale e finale.');return}
+ if(!from||!to||from>to){appNotice('Controlla le date: la data iniziale deve precedere o coincidere con quella finale.');return}
  const selected=state.records.filter(r=>{const d=workoutDate(r);return d>=from&&d<=to});
- if(!selected.length){alert('Nessun allenamento registrato nel periodo selezionato.');return}
- if(!confirm('Eliminare '+selected.length+' allenament'+(selected.length===1?'o':'i')+' dal '+from+' al '+to+'? Questa operazione non è annullabile. Le misure corporee non saranno eliminate. Esporta prima un backup JSON se vuoi conservarli.'))return;
- state.records=state.records.filter(r=>{const d=workoutDate(r);return d<from||d>to});
- save();historyView();
+ if(!selected.length){appNotice('Nessun allenamento salvato nelle date selezionate.');return}
+ appConfirm('Stai per eliminare '+selected.length+' allenament'+(selected.length===1?'o':'i')+'. Non potrai recuperarli senza un backup. Le misure corporee resteranno salvate.',()=>{
+  state.records=state.records.filter(r=>{const d=workoutDate(r);return d<from||d>to});
+  save();historyView();
+ });
 }
 function resetOneWorkout(date){
- if(state.active){alert('Interrompi prima la seduta in corso.');return}
+ if(state.active){appNotice('Interrompi prima la seduta in corso.');return}
  const selected=state.records.filter(r=>workoutDate(r)===date);
  if(!selected.length)return;
- if(!confirm('Eliminare l’allenamento del '+date+'? Questa operazione è definitiva. Esporta prima un backup se necessario.'))return;
- state.records=state.records.filter(r=>workoutDate(r)!==date);
- save();calendarView();
+ appConfirm('Eliminare '+selected.length+' allenament'+(selected.length===1?'o':'i')+' del '+new Date(date+'T12:00:00').toLocaleDateString('it-IT')+'? Questa operazione non può essere annullata senza un backup.',()=>{
+  state.records=state.records.filter(r=>workoutDate(r)!==date);save();calendarView();
+ });
 }
 function home(){const a=state.active;const locked=!!todayWorkout()||!!a;app.innerHTML=header('Allenati per crescere','Progressione misurabile, mobilità guidata e recupero intelligente.')+`<div class="card hero"><div class="eyebrow">Blocco ${state.week<=4?'1 · Base stabile':'2 · Varianti controllate'}</div><h2>Seleziona la settimana</h2><div class="week">${Array.from({length:8},(_,i)=>`<button class="btn smallbtn ${state.week===i+1?'selected':''}" onclick="setWeek(${i+1})">${i+1}</button>`).join('')}</div><p class="subtle">Settimane 1–4: movimenti di riferimento. Settimane 5–8: alcune varianti; ricalibra i carichi senza perdere tecnica.</p></div>`+(locked&&!a?`<div class="tip"><b>✓ Allenamento di oggi già registrato</b><p>Puoi consultare le schede, ma non avviarne un'altra oggi.</p><button class="btn" onclick="historyView()">Vedi allenamento salvato</button></div>`:'')+(a?`<div class="tip"><b>Seduta in corso: ${a.day}</b><p>Puoi riprendere da dove eri rimasto.</p><button class="btn primary" onclick="resume()">Riprendi seduta</button></div>`:'')+Object.entries(days).map(([k,d])=>`<div class="card"><div class="eyebrow">Giorno ${k}</div><h2>${d.name}</h2><p class="muted">${d.desc}</p><div class="row spread"><span class="pill">${d.ex.reduce((n,e)=>n+e.sets,0)} serie allenanti</span><span class="pill">~65–85 min + mobilità</span></div><div class="row" style="margin-top:14px"><button class="btn" onclick="preview('${k}')">Vedi esercizi</button><button class="btn primary" ${locked&&a?.day!==k?'disabled title="Altra seduta già in corso o registrata oggi"':''} onclick="${a?.day===k?'resume()':`begin('${k}')`}">${a?.day===k?'↗ Riprendi seduta':a?'Non disponibile':todayWorkout()?'✓ Già registrato':'Inizia →'}</button></div></div>`).join('')+`<div class="card"><h3>Analisi progressione</h3><p class="subtle">Valuta l'andamento di carichi, ripetizioni e RIR. Nessuna modifica senza conferma.</p><button class="btn primary wide" onclick="progressionView()">Apri analisi →</button></div><div class="card"><h3>Regole di progressione</h3><p class="subtle">Lascia circa 2 ripetizioni in riserva (RIR) nella maggior parte delle serie. Quando completi tutte le serie al limite alto del range con tecnica solida e RIR previsto, aumenta il peso dello scatto minimo la volta successiva. Non è obbligatorio arrivare al cedimento.</p><p class="subtle">Distribuzione consigliata: lunedì A, mercoledì B, venerdì C. Se il recupero è insufficiente, riduci 1–2 serie prima di aumentare il volume.</p></div>`}
 function setWeek(n){if(state.active&&!confirm('Hai una seduta in corso. Cambiare settimana non modifica questa seduta. Continuare?'))return;state.week=n;save();home()}
@@ -222,7 +241,13 @@ function endRest(){clearInterval(ticker);state.active.stage='train';state.active
 function coolView(){let a=state.active,d=days[a.day];app.innerHTML=header('Allenamento completato!','Ottimo. Ora puoi fare qualche minuto di stretching leggero.')+`<div class="card"><h2>Stretching facoltativo · 3–5 min</h2><p class="subtle">Mantieni ogni posizione con una tensione lieve, senza dolore e senza rimbalzi. La flessibilità migliora con costanza, non forzando.</p>${d.cool.map(x=>`<div class="exercise"><strong>${esc(x[0])} · ${x[1]} s circa</strong><div class="small">${esc(x[2])}</div></div>`).join('')}<button class="btn primary wide" onclick="complete()">Salva allenamento ✓</button></div>`}
 function complete(){let a=state.active;if(!a)return;if(todayWorkout()){alert('Un allenamento è già stato registrato oggi. Non è possibile salvare una seconda seduta.');return}spPauseOnFinish();state.records.push({date:new Date().toISOString(),day:a.day,week:a.week,started:a.started,entries:a.entries});state.active=null;save();app.innerHTML=header('Seduta salvata','Il diario conserva carichi e ripetizioni sul dispositivo.')+`<div class="card"><h2 class="check">✓ Allenamento registrato</h2><p>Hai registrato ${a.entries.length} serie allenanti.</p><button class="btn primary wide" onclick="home()">Torna al programma</button></div>`}
 function abandon(){if(confirm('Interrompere e perdere le serie di questa seduta?')){spPauseOnFinish();state.active=null;clearInterval(ticker);save();home()}}
-function historyView(){let list=[...state.records].reverse();const today=localDay(new Date());app.innerHTML=header('Diario allenamenti','Progressi registrati localmente in questo browser.')+`<div class="row"><button class="btn" onclick="exportCSV()">Esporta CSV</button><button class="btn" onclick="exportJSON()">Backup JSON</button></div><div class="card"><h3>Gestione allenamenti registrati</h3><p class="small muted">Per eliminare una seduta simulata o un periodo di test, scegli le date. Il reset cancella solo gli allenamenti del periodo, non le misure corporee.</p><div class="grid"><label>Dal giorno<input type="date" id="reset-from" value="${today}"></label><label>Al giorno<input type="date" id="reset-to" value="${today}"></label></div><button class="btn wide" style="margin-top:12px" onclick="resetWorkoutRange()">Elimina allenamenti nel periodo</button><p class="small muted">Prima di cancellare dati importanti, usa Backup JSON.</p></div>`+(list.length?list.map((r,i)=>`<details class="card"><summary><b>${esc(r.day)} · ${new Date(r.date).toLocaleDateString('it-IT')}</b> <span class="muted">· sett. ${r.week} · ${r.entries.length} serie</span></summary>${r.entries.map(x=>`<div class="exercise"><strong>${esc(x.exercise)}</strong><div class="small">${esc(x.kg)} kg · ${x.reps} rip · RIR ${esc(x.rir)}</div></div>`).join('')}</details>`).join(''):`<div class="card">Nessuna seduta salvata. Completa il primo allenamento per iniziare il diario.</div>`)}
+function historyView(){
+ const list=[...state.records].reverse(),today=localDay(new Date());
+ app.innerHTML=header('Diario allenamenti','Le tue sedute, ordinate dalla più recente.')+
+ '<div class="row diary-actions"><button class="btn" onclick="exportCSV()">Esporta CSV</button><button class="btn" onclick="exportJSON()">Backup JSON</button></div>'+
+ (list.length?list.map(r=>'<details class="card diary-session"><summary><span class="diary-summary"><b>Giorno '+esc(r.day)+' · '+new Date(r.date).toLocaleDateString('it-IT')+'</b><span class="small muted">Settimana '+esc(r.week)+' · '+r.entries.length+' serie</span></span></summary><div class="diary-entries">'+r.entries.map(x=>'<div class="exercise"><strong>'+esc(x.exercise)+'</strong><div class="small muted">'+esc(x.kg)+' kg · '+esc(x.reps)+' rip · RIR '+esc(x.rir)+'</div></div>').join('')+'</div></details>').join(''):'<div class="card diary-empty"><h3>Il diario è vuoto</h3><p class="muted">Le sedute completate appariranno qui.</p></div>')+
+ '<details class="card diary-manage"><summary><b>Gestisci o elimina allenamenti</b><span class="small muted">Apri solo quando serve</span></summary><div class="diary-manage-body"><p class="small muted">Seleziona un giorno o un periodo. Le misure corporee non saranno eliminate.</p><div class="grid"><label>Dal giorno<input type="date" id="reset-from" value="'+today+'"></label><label>Al giorno<input type="date" id="reset-to" value="'+today+'"></label></div><button class="btn vs-danger wide" onclick="resetWorkoutRange()">Elimina nel periodo</button><p class="small muted">Prima di eliminare dati importanti, esporta un backup JSON.</p></div></details>';
+}
 const measureMain=[['weight','Peso (kg)'],['height','Altezza (cm)'],['waist','Vita (cm)'],['chest','Torace (cm)'],['shoulders','Spalle (cm)'],['hips','Fianchi / glutei (cm)']];
 const measureExtra=[['neck','Collo (cm)'],['armLeft','Braccio sinistro (cm)'],['armRight','Braccio destro (cm)'],['forearmLeft','Avambraccio sinistro (cm)'],['forearmRight','Avambraccio destro (cm)'],['thighLeft','Coscia sinistra (cm)'],['thighRight','Coscia destra (cm)'],['calfLeft','Polpaccio sinistro (cm)'],['calfRight','Polpaccio destro (cm)']];
 
