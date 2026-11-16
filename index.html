@@ -489,17 +489,17 @@ function spUpdateMini(){
  let bar=document.getElementById('sp-mini');
  if(!bar){bar=document.createElement('aside');bar.id='sp-mini';bar.className='sp-mini';document.body.appendChild(bar)}
  const item=spCurrent?.item;
- if(!spGet('access')||!item||!spCurrent?.is_playing){bar.hidden=true;document.body.classList.remove('sp-mini-visible');return}
+ if(!spGet('access')||!item){bar.hidden=true;document.body.classList.remove('sp-mini-visible');return}
  bar.hidden=false;document.body.classList.add('sp-mini-visible');
  const art=item.album?.images?.[2]?.url||item.album?.images?.[1]?.url||'';
  const signature=[item.id,spCurrent.is_playing,art].join('|');
  if(bar.dataset.signature===signature)return;
  bar.dataset.signature=signature;
- bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'pause\')" aria-label="Pausa">⏸</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
+ bar.innerHTML='<button class="sp-mini-open" onclick="musicView();window.scrollTo(0,0)" aria-label="Apri Spotify">'+(art?'<img src="'+spEscape(art)+'" alt="">':'<span>♫</span>')+'<span class="sp-mini-label"><b>'+spEscape(item.name)+'</b><small>'+spEscape(item.artists?.map(a=>a.name).join(', ')||'Spotify')+'</small></span></button><button class="sp-mini-action" onclick="spQuickControl(\'toggle\')" aria-label="'+(spCurrent.is_playing?'Pausa':'Riprendi')+'">'+(spCurrent.is_playing?'⏸':'▶')+'</button><button class="sp-mini-action" onclick="spQuickControl(\'next\')" aria-label="Brano successivo">⏭</button>';
 }
 async function spQuickControl(action){
  if(!spCurrent)return;
- if(action==='pause'){spCurrent.is_playing=false;spUpdateMini()}
+ if(action==='toggle'){action=spCurrent.is_playing?'pause':'play';spCurrent.is_playing=action==='play';spUpdateMini()}
  try{await spApi('me/player/'+action,action==='next'?'POST':'PUT');await spAutoRefresh()}
  catch(e){spMessage='Controllo Spotify non disponibile: '+e.message;spAutoRefresh()}
 }
