@@ -87,7 +87,7 @@ function warmView(){
  const sec=warmSeconds(a,x);
  app.innerHTML=header('Riscaldamento · Giorno '+a.day,'Movimenti guidati, senza dolore e senza affaticamento.')+
  `<div class="card"><div class="row spread"><span class="pill">Passo ${a.warm+1}/${d.mob.length}</span><span class="pill">${x[1]} secondi indicativi</span></div><h2 style="margin-top:15px">${esc(x[0])}</h2><p>${esc(x[2])}</p>`+
- (timed?`<div class="tip" style="text-align:center"><div class="eyebrow">Timer esercizio</div><div class="timer" id="warm-clock" role="timer" aria-label="Tempo rimanente">${warmTimeFormat(sec)}</div><div class="grid"><button class="btn" onclick="warmAdjust(-10)">−10 s</button><button class="btn" onclick="warmAdjust(10)">+10 s</button><button class="btn" onclick="warmAdjust(-60)">−1 min</button><button class="btn" onclick="warmAdjust(60)">+1 min</button></div><div class="row" style="margin-top:12px"><label style="flex:1;text-align:left">Imposta minuti<input id="warm-min" type="number" min="0" max="180" inputmode="numeric" value="${Math.floor(sec/60)}"></label><label style="flex:1;text-align:left">Secondi<input id="warm-sec" type="number" min="0" max="59" inputmode="numeric" value="${sec%60}"></label></div><button class="btn wide" onclick="warmSetTime()">Imposta durata</button><button class="btn primary wide" style="margin-top:10px" onclick="warmToggle()">${t?.running?'⏸ Pausa':sec===0?'↻ Ricomincia':'▶ Inizia esercizio'}</button><button class="btn wide" onclick="warmReset()">Ripristina ${warmTimeFormat(x[1])}</button><p class="small muted">Il timer non passa automaticamente all'esercizio successivo. Puoi modificarlo anche durante il conteggio.</p></div>`:'')+
+ (timed?`<div class="tip" style="text-align:center"><div class="eyebrow">Timer esercizio</div><div class="timer" id="warm-clock" role="timer" aria-label="Tempo rimanente">${warmTimeFormat(sec)}</div><div class="grid"><button class="btn" onclick="warmAdjust(-10)">−10 s</button><button class="btn" onclick="warmAdjust(10)">+10 s</button><button class="btn" onclick="warmAdjust(-60)">−1 min</button><button class="btn" onclick="warmAdjust(60)">+1 min</button></div><button class="btn primary wide" style="margin-top:10px" onclick="warmToggle()">${t?.running?'⏸ Pausa':sec===0?'↻ Ricomincia':'▶ Inizia esercizio'}</button><button class="btn wide" onclick="warmReset()">Ripristina ${warmTimeFormat(x[1])}</button><p class="small muted">Il timer non passa automaticamente all'esercizio successivo. Puoi modificarlo anche durante il conteggio.</p></div>`:'')+
  `<div class="tip">Non serve eseguire stretching intenso prima dei pesi. I movimenti devono essere fluidi e confortevoli.</div><button class="btn primary wide" onclick="advanceWarm()">${a.warm===d.mob.length-1?'Vai ai pesi →':'Fatto · Prossimo →'}</button><button class="btn wide" onclick="skipWarm()">Salta riscaldamento (non consigliato)</button></div>`;
  if(timed&&t?.running){
   const step=a.warm;
@@ -107,12 +107,6 @@ function warmView(){
 function warmAdjust(delta){
  const a=state.active,x=days[a.day].mob[a.warm],sec=Math.max(0,Math.min(10800,warmSeconds(a,x)+delta)),running=a.warmTimer?.step===a.warm&&a.warmTimer.running&&sec>0;
  a.warmTimer={step:a.warm,running,remaining:sec,ends:running?Date.now()+sec*1000:null};save();warmView();
-}
-function warmSetTime(){
- const min=Number(document.getElementById('warm-min').value),sec=Number(document.getElementById('warm-sec').value);
- if(!Number.isInteger(min)||!Number.isInteger(sec)||min<0||min>180||sec<0||sec>59){alert('Imposta minuti tra 0 e 180 e secondi tra 0 e 59.');return}
- const a=state.active,total=min*60+sec,running=a.warmTimer?.step===a.warm&&a.warmTimer.running&&total>0;
- a.warmTimer={step:a.warm,running,remaining:total,ends:running?Date.now()+total*1000:null};save();warmView();
 }
 function warmToggle(){
  const a=state.active,x=days[a.day].mob[a.warm],t=a.warmTimer,remaining=warmSeconds(a,x);
