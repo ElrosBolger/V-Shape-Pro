@@ -159,7 +159,17 @@ async function spControl(path,method='PUT',body){
  try{await spApi(path,method,body);setTimeout(spLoad,450)}catch(e){spError(e)}
 }
 function spDevice(id){spControl('me/player','PUT',{device_ids:[id],play:false})}
-function spPlaylist(uri){spControl('me/player/play','PUT',{context_uri:uri})}
+async function spPlaylist(uri){
+ try{
+  let devices=spDevices;
+  if(!devices.length){const data=await spApi('me/player/devices');devices=data?.devices||[];spDevices=devices}
+  const target=devices.find(d=>d.is_active)||devices.find(d=>d.type==='Smartphone')||devices[0];
+  if(!target?.id){spMessage='Apri Spotify sul Pixel e avvia una canzone una sola volta, poi torna qui e premi Aggiorna. Spotify non permette di avviare da remoto un telefono non rilevato.';musicView();return}
+  await spApi('me/player/play?device_id='+encodeURIComponent(target.id),'PUT',{context_uri:uri});
+  spMessage='Playlist avviata sul dispositivo '+target.name+'.';
+  setTimeout(spLoad,600);
+ }catch(e){spError(e)}
+}
 function spVolume(v){spControl('me/player/volume?volume_percent='+Math.round(v),'PUT')}
 function spLogout(){spClear();spCurrent=null;spPlaylists=[];spDevices=[];spMessage='Spotify scollegato da questa PWA.';musicView()}
 function musicView(){
@@ -179,7 +189,7 @@ function musicView(){
  '<p class="small muted" style="margin-top:14px">Volume Spotify Connect (se supportato)</p><input type="range" min="0" max="100" value="'+(device?.volume_percent??50)+'" '+(!device?.supports_volume?'disabled':'')+' onchange="spVolume(this.value)" aria-label="Volume Spotify">'+
  '<p class="small muted">Dispositivo</p><select onchange="if(this.value)spDevice(this.value)"><option value="">Seleziona dispositivo</option>'+spDevices.map(d=>'<option value="'+spEscape(d.id)+'" '+(d.is_active?'selected':'')+'>'+spEscape(d.name)+' ('+spEscape(d.type)+')</option>').join('')+'</select>'+
  '<h3 style="margin-top:20px">Le tue playlist</h3>'+(spPlaylists.length?spPlaylists.filter(p=>p&&p.uri).map(p=>'<div class="row spread" style="margin:8px 0"><span style="flex:1;min-width:0">'+spEscape(p.name)+'</span><button class="btn smallbtn" onclick="spPlaylist(\''+spEscape(p.uri)+'\')">▶</button></div>').join(''):'<p class="muted small">Nessuna playlist disponibile. Apri Spotify per avviare la musica, poi aggiorna.</p>')+
- '<p class="small muted">Se Spotify segnala nessun dispositivo attivo, avvia un brano nell’app Spotify e torna qui.</p><button class="btn" onclick="spLogout()">Scollega Spotify</button>')+
+ '<p class="small muted">Tocca ▶ accanto a una playlist per avviarla sul Pixel o sul dispositivo Spotify Connect attivo. Se il telefono non compare, apri Spotify una volta per renderlo disponibile.</p><button class="btn" onclick="spLogout()">Scollega Spotify</button>')+
  '</div><div class="card"><p>Per associare cuffie Bluetooth e regolare il volume generale, usa i controlli Android. Spotify Premium e le API determinano quali controlli remoti sono disponibili.</p><button class="btn wide" onclick="window.open(\'https://open.spotify.com/\',\'_blank\')">Apri Spotify</button></div>';
 }
 
