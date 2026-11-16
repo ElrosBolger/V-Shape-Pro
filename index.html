@@ -690,10 +690,11 @@ function appGoBack(){
 })();
 spEnsureAutoRefresh();
 const spMiniCss=document.createElement('style');
-spMiniCss.textContent='.sp-mini{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:8px;background:linear-gradient(120deg,#251b46,#14112d);border:1px solid #7454b5;border-radius:18px;box-shadow:0 10px 40px #0009;z-index:1500}.sp-mini[hidden]{display:none}.sp-mini-open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;color:#fff;text-align:left}.sp-mini-open img{width:42px;height:42px;object-fit:cover;border-radius:9px}.sp-mini-label{display:flex;flex-direction:column;min-width:0}.sp-mini-label b,.sp-mini-label small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sp-mini-label small{color:#c6b9e8}.sp-mini-action{border:0;background:#6e50b3;color:white;border-radius:11px;min-width:43px;min-height:43px;font-size:21px}.sp-mini-visible .wrap{padding-bottom:110px}
-/* The full Spotify music screen already has its own player. */
-body:has(#spotify-panel) #sp-mini{display:none!important}
-body.sp-mini-visible:has(#spotify-panel) .wrap{padding-bottom:24px}';
+spMiniCss.textContent='.sp-mini{position:fixed;bottom:calc(12px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(640px,calc(100% - 24px));display:flex;align-items:center;gap:8px;padding:8px;background:linear-gradient(120deg,#251b46,#14112d);border:1px solid #7454b5;border-radius:18px;box-shadow:0 10px 40px #0009;z-index:1500}.sp-mini[hidden]{display:none}.sp-mini-open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:none;border:0;color:#fff;text-align:left}.sp-mini-open img{width:42px;height:42px;object-fit:cover;border-radius:9px}.sp-mini-label{display:flex;flex-direction:column;min-width:0}.sp-mini-label b,.sp-mini-label small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sp-mini-label small{color:#c6b9e8}.sp-mini-action{border:0;background:#6e50b3;color:white;border-radius:11px;min-width:43px;min-height:43px;font-size:21px}.sp-mini-visible .wrap{padding-bottom:110px}';
+/* Keep the mini-player outside the full Spotify screen without breaking JavaScript parsing. */
+const spMusicOnlyCss=document.createElement('style');
+spMusicOnlyCss.textContent='body:has(#spotify-panel) #sp-mini{display:none!important}body.sp-mini-visible:has(#spotify-panel) .wrap{padding-bottom:24px}';
+document.head.appendChild(spMusicOnlyCss);;
 document.head.appendChild(spMiniCss);
 /* Keep the app usable if Spotify OAuth fails or browser storage is restricted. */
 function showStartupFallback(error){
