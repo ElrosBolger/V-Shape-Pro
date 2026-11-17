@@ -185,7 +185,7 @@ input::placeholder{color:#a79ab8}
   });
   launchIntro();
 })();
-</script><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>ASCENSION</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="internal-back" type="button" onclick="appGoBack()" hidden aria-label="Torna alla schermata precedente">← Indietro</button><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
+</script><div class="wrap"><header class="top"><div><div class="brand">V-SHAPE <b>ASCENSION</b></div><div class="small muted">Ipertrofia equilibrata · 3 giorni</div></div><button class="btn" id="internal-back" type="button" onclick="appGoBack()" hidden aria-label="Torna alla schermata precedente">← Indietro</button><button class="btn" id="menu-toggle" type="button" aria-controls="app-menu" aria-expanded="false" onclick="toggleAppMenu()">☰ Menu</button></header><nav id="app-menu" class="app-menu" hidden><button class="btn" onclick="navigateMenu(home)">⌂ Programma</button><button class="btn" onclick="navigateMenu(calendarView)">▦ Calendario</button><button class="btn" onclick="navigateMenu(historyView)">▤ Diario</button><button class="btn" onclick="navigateMenu(progressionView)">◇ Progressione</button><button class="btn" onclick="navigateMenu(statsView)">▥ Statistiche</button><button class="btn" onclick="navigateMenu(settingsView)">⚙ Dati</button><button class="btn" onclick="navigateMenu(musicView)">♫ Musica</button></nav><main id="app"></main></div><script>
 'use strict';
 const STORE='vshape_final_v1';const initial={week:1,loads:{},records:[],active:null,measurements:{},measurementHistory:[],profile:{},warmDone:{}};
 let state;try{state={...initial,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch{state={...initial}};
@@ -383,6 +383,24 @@ function progApprove(day,week,index){
  const a=progAssess(day,week,index);if(a?.kind!=='increase')return;
  state.progressionApprovals??={};state.progressionApprovals[progKey(day,week,index)]={at:new Date().toISOString(),kg:a.kg};
  save();progressionView();
+}
+/* Quality Upgrade: derived statistics only; never mutate workout history. */
+function statsView(){
+ const records=Array.isArray(state.records)?state.records.filter(r=>r&&Array.isArray(r.entries)):[];
+ const entries=records.flatMap(r=>r.entries.map(e=>({...e,date:r.date,day:r.day})));
+ const volume=entries.reduce((sum,e)=>{const kg=Number(String(e.kg).replace(',','.')),reps=Number(e.reps);return sum+(Number.isFinite(kg)&&kg>=0&&Number.isFinite(reps)&&reps>0?kg*reps:0)},0);
+ const validDates=records.map(r=>new Date(r.date)).filter(d=>Number.isFinite(d.getTime()));
+ const months=[...new Set(validDates.map(d=>d.toLocaleDateString('it-IT',{month:'long',year:'numeric})))];
+ const byExercise=new Map();
+ for(const e of entries){const name=String(e.exercise||'').trim();const kg=Number(String(e.kg).replace(',','.'));if(!name||!Number.isFinite(kg)||kg<0)continue;const prev=byExercise.get(name);if(!prev||kg>prev.kg)byExercise.set(name,{kg,date:e.date});}
+ const recordsHTML=[...byExercise.entries()].sort((a,b)=>a[0].localeCompare(b[0],'it')).map(([name,p])=>'<div class="exercise"><strong>'+esc(name)+'</strong><div class="small muted">Carico massimo registrato: '+esc(p.kg)+' kg</div></div>').join('');
+ const dayCounts=['A','B','C'].map(day=>({day,count:records.filter(r=>r.day===day).length}));
+ app.innerHTML=header('Statistiche allenamento','Dati ricavati dal diario salvato sul dispositivo.')+
+ '<div class="card hero"><h2>'+records.length+' sedute completate</h2><p class="subtle">'+entries.length+' serie registrate · '+Math.round(volume).toLocaleString('it-IT')+' kg di volume totale stimato</p><p class="small muted">Volume = peso × ripetizioni. Le serie a corpo libero registrate con 0 kg non contribuiscono al volume.</p></div>'+
+ '<div class="card"><h3>Frequenza per giornata</h3>'+dayCounts.map(x=>'<div class="exercise">Giorno '+x.day+': <b>'+x.count+' sedute</b></div>').join('')+'</div>'+
+ '<div class="card"><h3>Record di carico per esercizio</h3>'+(recordsHTML||'<p class="muted">Registra una seduta per vedere i tuoi record.</p>')+'<p class="small muted">Sono massimi di peso registrato, non stime di forza massimale.</p></div>'+
+ '<div class="card"><h3>Periodi registrati</h3><p class="subtle">'+(months.length?months.map(esc).join(' · '):'Nessuna seduta salvata')+'</p></div>'+
+ '<button class="btn wide" onclick="historyView()">Apri diario</button><button class="btn wide" onclick="home()">Torna al programma</button>';
 }
 function progressionView(){
  const all=Object.entries(days).flatMap(([day,d])=>d.ex.map((e,index)=>({day,index,name:state.week<=4?e.name:e.alt,a:progAssess(day,state.week,index)})));
