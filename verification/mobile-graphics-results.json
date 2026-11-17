@@ -6,13 +6,61 @@
   "authenticatedSpotifyNotTested": true,
   "cases": [
     {
+      "name": "active workout 448x998",
+      "status": "passed",
+      "geometry": {
+        "imageCount": 1,
+        "source": "./splash-system-ascension.jpg",
+        "naturalWidth": 864,
+        "naturalHeight": 1536,
+        "fit": "contain",
+        "background": "rgb(0, 0, 0)",
+        "transition": "0.4s",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 448,
+          "height": 998
+        },
+        "paintedWidth": 448,
+        "paintedHeight": 796.4444444444443,
+        "viewport": {
+          "width": 448,
+          "height": 998
+        }
+      },
+      "holdMs": 2500,
+      "fadeAndCleanupMs": 420,
+      "events": [
+        {
+          "phase": "added",
+          "time": 16.5
+        },
+        {
+          "phase": "visible",
+          "time": 59.39999999999418
+        },
+        {
+          "phase": "fade",
+          "time": 2559.5999999999913
+        },
+        {
+          "phase": "removed",
+          "time": 2979.7999999999884
+        }
+      ],
+      "javascriptErrors": [],
+      "consoleErrors": [],
+      "storedDataUnchanged": true
+    },
+    {
       "name": "active workout 432x960",
       "status": "passed",
       "geometry": {
         "imageCount": 1,
-        "source": "./splash-1080x2400.jpg",
-        "naturalWidth": 1080,
-        "naturalHeight": 2400,
+        "source": "./splash-system-ascension.jpg",
+        "naturalWidth": 864,
+        "naturalHeight": 1536,
         "fit": "contain",
         "background": "rgb(0, 0, 0)",
         "transition": "0.4s",
@@ -23,7 +71,7 @@
           "height": 960
         },
         "paintedWidth": 432,
-        "paintedHeight": 960,
+        "paintedHeight": 768,
         "viewport": {
           "width": 432,
           "height": 960
@@ -34,19 +82,19 @@
       "events": [
         {
           "phase": "added",
-          "time": 20.60000000000582
+          "time": 11
         },
         {
           "phase": "visible",
-          "time": 28.19999999999709
+          "time": 21.5
         },
         {
           "phase": "fade",
-          "time": 2528.4000000000087
+          "time": 2521.7999999999884
         },
         {
           "phase": "removed",
-          "time": 2948.699999999997
+          "time": 2942
         }
       ],
       "javascriptErrors": [],
@@ -58,9 +106,9 @@
       "status": "passed",
       "geometry": {
         "imageCount": 1,
-        "source": "./splash-1080x2400.jpg",
-        "naturalWidth": 1080,
-        "naturalHeight": 2400,
+        "source": "./splash-system-ascension.jpg",
+        "naturalWidth": 864,
+        "naturalHeight": 1536,
         "fit": "contain",
         "background": "rgb(0, 0, 0)",
         "transition": "0.4s",
@@ -71,7 +119,7 @@
           "height": 800
         },
         "paintedWidth": 360,
-        "paintedHeight": 800,
+        "paintedHeight": 640,
         "viewport": {
           "width": 360,
           "height": 800
@@ -82,19 +130,19 @@
       "events": [
         {
           "phase": "added",
-          "time": 10.5
+          "time": 10.300000000017462
         },
         {
           "phase": "visible",
-          "time": 22.39999999999418
+          "time": 15.5
         },
         {
           "phase": "fade",
-          "time": 2522.7999999999884
+          "time": 2515.8000000000175
         },
         {
           "phase": "removed",
-          "time": 2943.0999999999913
+          "time": 2936.100000000006
         }
       ],
       "javascriptErrors": [],
@@ -106,9 +154,9 @@
       "status": "passed",
       "geometry": {
         "imageCount": 1,
-        "source": "./splash-1080x2400.jpg",
-        "naturalWidth": 1080,
-        "naturalHeight": 2400,
+        "source": "./splash-system-ascension.jpg",
+        "naturalWidth": 864,
+        "naturalHeight": 1536,
         "fit": "contain",
         "background": "rgb(0, 0, 0)",
         "transition": "0.4s",
@@ -118,7 +166,7 @@
           "width": 960,
           "height": 432
         },
-        "paintedWidth": 194.4,
+        "paintedWidth": 243,
         "paintedHeight": 432,
         "viewport": {
           "width": 960,
@@ -130,19 +178,19 @@
       "events": [
         {
           "phase": "added",
-          "time": 10.900000000008731
+          "time": 9.10000000000582
         },
         {
           "phase": "visible",
-          "time": 22.40000000000873
+          "time": 20.10000000000582
         },
         {
           "phase": "fade",
-          "time": 2522.800000000003
+          "time": 2520.2999999999884
         },
         {
           "phase": "removed",
-          "time": 2943.199999999997
+          "time": 2940.5
         }
       ],
       "javascriptErrors": [],
@@ -156,15 +204,15 @@
       "events": [
         {
           "phase": "added",
-          "time": 10.099999999991269
+          "time": 10
         },
         {
           "phase": "visible",
-          "time": 22.5
+          "time": 21.699999999982538
         },
         {
           "phase": "removed",
-          "time": 43.59999999999127
+          "time": 38.29999999998836
         }
       ],
       "javascriptErrors": [],
@@ -223,15 +271,15 @@
       "events": [
         {
           "phase": "added",
-          "time": 11.80000000000291
+          "time": 9.799999999988358
         },
         {
           "phase": "visible",
-          "time": 24.09999999999127
+          "time": 20.10000000000582
         },
         {
           "phase": "removed",
-          "time": 2524.399999999994
+          "time": 2520.399999999994
         }
       ],
       "javascriptErrors": [],
@@ -245,11 +293,11 @@
       "events": [
         {
           "phase": "added",
-          "time": 13.10000000000582
+          "time": 10
         },
         {
           "phase": "removed",
-          "time": 18.10000000000582
+          "time": 19.39999999999418
         }
       ],
       "javascriptErrors": [],
@@ -263,19 +311,19 @@
       "events": [
         {
           "phase": "added",
-          "time": 10.900000000008731
+          "time": 9.799999999988358
         },
         {
           "phase": "visible",
-          "time": 14.60000000000582
+          "time": 13.60000000000582
         },
         {
           "phase": "fade",
-          "time": 2514.800000000003
+          "time": 2513.7000000000116
         },
         {
           "phase": "removed",
-          "time": 2935
+          "time": 2933.899999999994
         }
       ],
       "javascriptErrors": [],

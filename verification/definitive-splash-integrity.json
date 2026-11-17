@@ -1,0 +1,27 @@
+{
+  "source_filename": "145227.png",
+  "installed_asset": "splash-system-ascension.jpg",
+  "sha256": "87435779dd7d5ad0ac80ac8fa72f5f36beb6b3a44ce56e98a864adb9c2c9757a",
+  "dimensions": [
+    864,
+    1536
+  ],
+  "format": "JPEG (original attachment bytes)",
+  "image_bytes_unchanged": true,
+  "home_icons_and_manifest_unchanged": [
+    "manifest.webmanifest",
+    "icon-192.png",
+    "icon-512.png",
+    "icon-maskable-v2-192.png",
+    "icon-maskable-v2-512.png",
+    "favicon-32.png",
+    "apple-touch-icon.png"
+  ],
+  "workout_spotify_script_unchanged": true,
+  "intro_timing_and_behavior_unchanged": true,
+  "fit": "contain",
+  "one_html_intro": true,
+  "hold_ms": 2500,
+  "fade_ms": 400,
+  "baseline_commit": "af21e620072d867b275acabb21a8f186299d4952"
+}
