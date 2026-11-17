@@ -36,7 +36,7 @@ const fixture=active=>({week:1,loads:{'A:1:0':'40'},records:[{date:'2026-11-10T1
   const page=await context.newPage(),errors=[],consoleErrors=[];
   page.on('pageerror',e=>errors.push(e.message));
   page.on('console',m=>{if(m.type()==='error'&&!(failImage&&m.text().includes('Failed to load resource')))consoleErrors.push(m.text())});
-  if(failImage)await page.route('**/splash-1080x2400.jpg',route=>route.abort());
+  if(failImage)await page.route('**/splash-system-ascension.jpg',route=>route.abort());
   await page.goto(base+query,{waitUntil:'domcontentloaded'});
   return {name,page,context,stored,errors,consoleErrors};
  }
@@ -48,7 +48,7 @@ const fixture=active=>({week:1,loads:{'A:1:0':'40'},records:[{date:'2026-11-10T1
   await c.context.close();
  }
  try{
-  for(const viewport of [{width:432,height:960},{width:360,height:800},{width:960,height:432}]){
+  for(const viewport of [{width:448,height:998},{width:432,height:960},{width:360,height:800},{width:960,height:432}]){
    const active={day:'A',week:1,ex:0,set:1,stage:'rest',restEnd:Date.now()+120000,entries:[],started:'2026-11-16T12:00:00Z',transition:false};
    const c=await openCase('active workout '+viewport.width+'x'+viewport.height,{viewport,active}),splash=c.page.locator('#vs-launch-splash');
    await splash.waitFor({state:'visible',timeout:3500});
@@ -56,7 +56,7 @@ const fixture=active=>({week:1,loads:{'A:1:0':'40'},records:[{date:'2026-11-10T1
     const img=el.querySelector('img'),box=el.getBoundingClientRect(),scale=Math.min(box.width/img.naturalWidth,box.height/img.naturalHeight);
     return {imageCount:el.querySelectorAll('img').length,source:img.getAttribute('src'),naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight,fit:getComputedStyle(img).objectFit,background:getComputedStyle(el).backgroundColor,transition:getComputedStyle(el).transitionDuration,box:{x:box.x,y:box.y,width:box.width,height:box.height},paintedWidth:img.naturalWidth*scale,paintedHeight:img.naturalHeight*scale,viewport:{width:innerWidth,height:innerHeight}};
    });
-   assert.equal(geometry.imageCount,1);assert.equal(geometry.source,'./splash-1080x2400.jpg');assert.equal(geometry.fit,'contain');assert.equal(geometry.background,'rgb(0, 0, 0)');assert.equal(geometry.transition,'0.4s');assert.equal(geometry.naturalWidth,1080);assert.equal(geometry.naturalHeight,2400);
+   assert.equal(geometry.imageCount,1);assert.equal(geometry.source,'./splash-system-ascension.jpg');assert.equal(geometry.fit,'contain');assert.equal(geometry.background,'rgb(0, 0, 0)');assert.equal(geometry.transition,'0.4s');assert.equal(geometry.naturalWidth,864);assert.equal(geometry.naturalHeight,1536);
    assert(geometry.paintedWidth<=geometry.box.width+.1&&geometry.paintedHeight<=geometry.box.height+.1);assert.equal(geometry.box.x,0);assert.equal(geometry.box.y,0);
    await c.page.screenshot({path:path.join(output,'splash-'+viewport.width+'x'+viewport.height+'.png')});
    await splash.waitFor({state:'detached',timeout:5500});
@@ -76,6 +76,6 @@ const fixture=active=>({week:1,loads:{'A:1:0':'40'},records:[{date:'2026-11-10T1
   const offline=await openCase('cached application offline',{workers:'allow'});await offline.page.evaluate(async()=>{await navigator.serviceWorker.ready});await offline.page.locator('#vs-launch-splash').waitFor({state:'detached',timeout:5500});await offline.context.setOffline(true);await offline.page.reload({waitUntil:'domcontentloaded'});await offline.page.locator('#vs-launch-splash').waitFor({state:'visible',timeout:3000});await offline.page.locator('#vs-launch-splash').waitFor({state:'detached',timeout:5500});await offline.page.getByRole('heading',{name:'Allenati per crescere',exact:true}).waitFor({state:'visible'});await finish(offline,{offlineApplicationAndOriginalArtwork:true});
   const report={status:'passed',engine:'Chromium via Playwright 1.56.1',syntheticDataOnly:true,nativeAndroidNotEmulated:true,authenticatedSpotifyNotTested:true,cases};
   fs.writeFileSync(path.join(output,'mobile-graphics-results.json'),JSON.stringify(report,null,2)+'\n');
-  console.log(JSON.stringify({status:report.status,passedCases:cases.length,viewports:['432x960','360x800','960x432'],cases:cases.map(c=>({name:c.name,holdMs:c.holdMs,fadeAndCleanupMs:c.fadeAndCleanupMs,status:c.status}))},null,2));
+  console.log(JSON.stringify({status:report.status,passedCases:cases.length,viewports:['448x998','432x960','360x800','960x432'],cases:cases.map(c=>({name:c.name,holdMs:c.holdMs,fadeAndCleanupMs:c.fadeAndCleanupMs,status:c.status}))},null,2));
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1});

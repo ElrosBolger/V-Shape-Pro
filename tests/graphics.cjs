@@ -47,22 +47,22 @@ function workerHarness(opts={}){
  const cached=opts.cached||new Map();
  const cache={async addAll(assets){if(opts.installFail)throw Error('download failure');added.push(...assets)},async match(key){return cached.get(typeof key==='string'?new URL(key,scope).href:key.url)},async put(request,response){if(opts.quota)throw Error('quota');put.push(request.url);cached.set(request.url,response)}};
  const self={registration:{scope},location:{origin:new URL(scope).origin},addEventListener:(type,fn)=>handlers[type]=fn,skipWaiting:async()=>skip++,clients:{claim:async()=>claim++}};
- const caches={open:async()=>cache,keys:async()=>['vshape-pro-v8-20261116','vshape-pro-v9-original-graphics-20261116','vshape-pro-v10-pixel-graphics-20261116','another-app-cache'],delete:async key=>deleted.push(key)};
+ const caches={open:async()=>cache,keys:async()=>['vshape-pro-v8-20261116','vshape-pro-v9-original-graphics-20261116','vshape-pro-v10-pixel-graphics-20261116','vshape-pro-v11-definitive-splash-20261117','another-app-cache'],delete:async key=>deleted.push(key)};
  vm.runInNewContext(swScript,{self,caches,URL,Set,Response,fetch:async request=>{if(opts.offline)throw Error('offline');return new Response('network',{status:200,headers:{'Content-Type':'text/plain'}})}});
  async function run(type,request){const pending=[];let response;handlers[type]({request,waitUntil:p=>pending.push(p),respondWith:p=>response=p});const result=response?await response:undefined;await Promise.all(pending);return result}
  return {run,deleted,put,added,cached,get skip(){return skip},get claim(){return claim}};
 }
 const request=(url,mode='cors',method='GET')=>({url,mode,method});
 const scope='https://elrosbolger.github.io/V-Shape-Pro/';
-test('worker install precaches all existing assets, including original graphics',async()=>{const h=workerHarness();await h.run('install');assert.equal(h.skip,1);assert(h.added.includes('./splash-1080x2400.jpg'));for(const asset of h.added){assert(fs.existsSync(path.join(root,asset==='./'?'index.html':asset)))}assert(!h.added.includes('./icon.svg'))});
+test('worker install precaches all existing assets, including original graphics',async()=>{const h=workerHarness();await h.run('install');assert.equal(h.skip,1);assert(h.added.includes('./splash-system-ascension.jpg'));for(const asset of h.added){assert(fs.existsSync(path.join(root,asset==='./'?'index.html':asset)))}assert(!h.added.includes('./icon.svg'))});
 test('failed precache never activates the incomplete worker',async()=>{const h=workerHarness({installFail:true});await assert.rejects(h.run('install'));assert.equal(h.skip,0)});
-test('activation preserves unrelated app caches',async()=>{const h=workerHarness();await h.run('activate');assert.deepEqual(h.deleted,['vshape-pro-v8-20261116','vshape-pro-v9-original-graphics-20261116']);assert.equal(h.claim,1)});
+test('activation preserves unrelated app caches',async()=>{const h=workerHarness();await h.run('activate');assert.deepEqual(h.deleted,['vshape-pro-v8-20261116','vshape-pro-v9-original-graphics-20261116','vshape-pro-v10-pixel-graphics-20261116']);assert.equal(h.claim,1)});
 for(const [label,req] of Object.entries({Spotify:request('https://api.spotify.com/v1/me/player'),OAuth:request('https://accounts.spotify.com/api/token','cors','POST'),'another app':request('https://elrosbolger.github.io/SAC-Desk/')})){
  test('worker leaves '+label+' requests alone',async()=>{const h=workerHarness();assert.equal(await h.run('fetch',req),undefined);assert.deepEqual(h.put,[])})
 }
 test('online icon response remains available if cache quota is exceeded',async()=>{const h=workerHarness({quota:true});const result=await h.run('fetch',request(scope+'icon-512.png'));assert.equal(await result.text(),'network')});
 test('OAuth callback query strings are never cached',async()=>{const h=workerHarness();await h.run('fetch',request(scope+'?code=test&state=test','navigate'));assert.deepEqual(h.put,[])});
-test('offline cached splash is served as image, not HTML',async()=>{const cached=new Map([[scope+'splash-1080x2400.jpg',new Response('image bytes',{headers:{'Content-Type':'image/jpeg'}})]]);const h=workerHarness({offline:true,cached});const res=await h.run('fetch',request(scope+'splash-1080x2400.jpg'));assert.equal(res.headers.get('Content-Type'),'image/jpeg')});
+test('offline cached splash is served as image, not HTML',async()=>{const cached=new Map([[scope+'splash-system-ascension.jpg',new Response('image bytes',{headers:{'Content-Type':'image/jpeg'}})]]);const h=workerHarness({offline:true,cached});const res=await h.run('fetch',request(scope+'splash-system-ascension.jpg'));assert.equal(res.headers.get('Content-Type'),'image/jpeg')});
 test('offline missing image returns network error instead of an HTML fallback',async()=>{const h=workerHarness({offline:true,cached:new Map([[scope+'index.html',new Response('<html>app</html>')]])});const res=await h.run('fetch',request(scope+'missing.jpg'));assert.equal(res.type,'error')});
 test('offline navigation still opens the cached application',async()=>{const h=workerHarness({offline:true,cached:new Map([[scope+'index.html',new Response('<html>app</html>')]])});const res=await h.run('fetch',request(scope+'?offline','navigate'));assert.equal(await res.text(),'<html>app</html>')});
 
@@ -101,3 +101,5 @@ for(const [label,opts] of Object.entries({'rest due now':{active:true,workout:{s
 }
 test('ordinary foreground reopening after 30 seconds shows one new introduction',()=>{const h=splashHarness({active:true});h.overlay.image.fire('load');h.advance(2920);h.document.hidden=true;h.document.fire('visibilitychange');h.advance(30001);h.document.hidden=false;h.document.fire('visibilitychange');assert(h.overlay);h.overlay.image.fire('load');assert.equal(h.body.children.length,1);assert.deepEqual(h.writes,[])});
 test('quick foreground reopening preserves immediate access without another intro',()=>{const h=splashHarness({active:true});h.overlay.image.fire('load');h.advance(2920);h.document.hidden=true;h.document.fire('visibilitychange');h.advance(1000);h.document.hidden=false;h.document.fire('visibilitychange');assert.equal(h.overlay,undefined)});
+
+test('definitive splash is byte-identical to the supplied image',()=>{const crypto=require('node:crypto');assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'splash-system-ascension.jpg'))).digest('hex'),'87435779dd7d5ad0ac80ac8fa72f5f36beb6b3a44ce56e98a864adb9c2c9757a')});

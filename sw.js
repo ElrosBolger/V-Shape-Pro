@@ -1,12 +1,12 @@
 'use strict';
 
 const CACHE_PREFIX = 'vshape-pro-';
-const CACHE = CACHE_PREFIX + 'v10-pixel-graphics-20261116';
+const CACHE = CACHE_PREFIX + 'v11-definitive-splash-20261117';
 const ASSETS = [
   './', './index.html', './manifest.webmanifest',
   './icon-192.png', './icon-512.png',
   './icon-maskable-v2-192.png', './icon-maskable-v2-512.png',
-  './favicon-32.png', './apple-touch-icon.png', './splash-1080x2400.jpg'
+  './favicon-32.png', './apple-touch-icon.png', './splash-system-ascension.jpg'
 ];
 const ASSET_URLS = new Set(ASSETS.map(path => new URL(path, self.registration.scope).href));
 

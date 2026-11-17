@@ -1,68 +1,54 @@
-# V-SHAPE · Original graphics on Android
+# V-SHAPE · Definitive System Ascension splash
 
-Original artwork comes from the owner's supplied installation package.
-The original `icon-192.png`, `icon-512.png` and
-`splash-1080x2400.jpg` remain byte-identical.
+The active HTML introduction now uses only `splash-system-ascension.jpg`, copied
+byte-for-byte from the owner's attachment `145227.png` on 17 November 2026.
+The attachment contains JPEG data despite its `.png` name. It is installed under
+the correct extension without decoding/re-encoding, redrawing or changing pixels.
 
-## Android icon
+SHA-256: `87435779dd7d5ad0ac80ac8fa72f5f36beb6b3a44ce56e98a864adb9c2c9757a`.
+Original dimensions: 864×1536. The whole image is centred with `object-fit: contain`
+on black, without borders, stretching, tiling or cropped content. On taller Pixel
+viewports the unused area stays black; filling that area would require cropping
+or changing the supplied artwork. The old artwork is no longer preloaded or
+referenced by the active intro or current worker cache.
 
-The previous maskable icon put the artwork in only 280 of 512 pixels.
-`scripts/resize-original-icon.py` resizes the supplied original PNG uniformly,
-centres one complete copy on black, and creates versioned maskable PNGs at
-192 and 512 pixels. It chooses a larger size using the actual silver artwork
-geometry and verifies that the silver V and highlights stay inside Android's
-central 40%-radius safe circle. It does not crop, redraw, tile or stretch the
-source image. Android controls the final outside mask, including peripheral glow.
+## Behavior preserved
 
-The new asset URLs trigger a manifest icon update. Home keeps the short name
-`V-SHAPE`; the existing app URL, scope, standalone mode and identity are retained.
+There is one HTML introduction. Its existing 2500 ms hold and 400 ms fade, reduced
+motion behavior, independent error/deadline safeguards and quick-access rules
+are unchanged. It can appear with a saved active workout; recovery deadlines
+continue to run. OAuth returns, short foreground returns and urgent recovery
+access still bypass it as before.
 
-## HTML introduction
+Android/Chrome control the preceding native launch screen. This website update
+replaces the image in the existing HTML introduction only.
 
-The full character/barbell artwork is shown as one image, centred on black with
-`object-fit: contain`. No extra border or repeated background image is added.
-Its original purple outline is part of the supplied artwork and is preserved.
+All Home icon files, favicons and `manifest.webmanifest` remain byte-identical.
+The complete workout/Spotify application script and the app CSS are unchanged.
+No workout, backup, diary, progression, timer or Spotify code is modified.
+Only the intro image URL/dimensions and the worker asset cache version change.
+The new cache still retires only obsolete V-SHAPE asset caches; local workout
+and Spotify storage and other applications' caches are untouched.
 
-The image stays visible for 2500 ms after loading, followed by a 400 ms fade
-and a 20 ms cleanup allowance. Reduced motion skips the fade. Image errors,
-interaction, hiding the app, and independent deadlines close the introduction.
-A late or failed image never leaves a persistent black overlay.
+## Verification
 
-An active saved workout no longer suppresses the introduction. It also appears
-on an ordinary foreground return after at least 30 seconds away. Immediate
-access takes priority for:
-- Spotify OAuth callbacks, browser history/BFCache restoration;
-- foreground returns within 30 seconds, or a focused input on return;
-- recovery/warm-up timers already expired or due within 2900 ms;
-- explicit `?resume=1` or `?quick=1` links;
-- user interaction, hidden pages or inaccessible/invalid saved state.
+`python scripts/verify-definitive-splash.py` checks the attachment hash, image
+format/dimensions, icon and manifest identity, unchanged app script/CSS, intro
+behavior/timing, syntax and the presence of one introduction.
 
-The launch code only reads workout storage; it never changes it or pauses timers.
-The complete workout/Spotify application script remains byte-identical to
-`36c19da2459d65367edccbed0af06a937fde947d`. Recovery still uses its saved absolute
-deadline. Backup/import formats and the eight-week program are unchanged.
+`node --test tests/graphics.cjs` checks launch, data and cache safeguards.
+The isolated-branch workflow runs the actual Chromium mobile checks in
+`tests/mobile-graphics.cjs`, including 448×998, 432×960, 360×800 and 960×432
+viewports, original image dimensions, image count, uncropped layout, timing,
+recovery, OAuth, reduced motion, image failure and offline loading. Its actual
+results and screenshots are recorded under `verification/`.
 
-Android/Chrome generate the earlier native splash from the manifest. The website
-cannot replace that OS-controlled screen with the full character image.
+Only synthetic local browser data is used. This is mobile browser emulation,
+not a physical Pixel or authenticated Spotify Premium session. The PWA has no
+new runtime dependencies, AI APIs, subscriptions or paid services.
 
-## Verification and recovery
+Recovery branch: `restore/vshape-before-definitive-splash-20261117`.
+Baseline commit: `af21e620072d867b275acabb21a8f186299d4952`.
 
-Run the dependency-free logic checks with `node --test tests/graphics.cjs`.
-The isolated-branch GitHub Actions workflow generates the exact resized images,
-checks their geometry/source hashes, runs the logic checks and Chromium mobile
-tests, and records actual results and screenshots under `verification/`.
-Pillow and Playwright are development-only tooling; the PWA has no new runtime
-dependencies, paid services or AI APIs.
-
-Mobile checks cover 432×960, 360×800 and 960×432 viewports, active recovery and
-training, timing, one uncropped original image, interaction, immediate/OAuth
-returns, reduced motion, image failure, offline mode and unchanged synthetic
-workout data. Authenticated Spotify playback and physical Pixel installation
-are outside those browser tests.
-
-Recovery branch: `restore/vshape-before-pixel-fix-20261116`.
-Pre-change commit: `36c19da2459d65367edccbed0af06a937fde947d`.
-
-For an installed Pixel app, reload the updated site in Chrome and reopen the PWA.
-Accept the icon update when Chrome offers it. Do not clear site data to refresh
-graphics. Export a JSON backup before considering removal/reinstallation.
+Reload the updated site and reopen the installed PWA to receive the asset/cache
+update. Do not delete site data to refresh graphics.
