@@ -1,0 +1,20 @@
+name: V-SHAPE Quality Regression
+on:
+  push:
+    branches:
+      - work/vshape-quality-upgrade-20261117
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax and regression invariants
+        run: node tests/quality-regression.cjs
