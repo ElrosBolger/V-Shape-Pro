@@ -17,6 +17,10 @@ const checks=[
  ['undo confirmation',/Rifare l’ultima serie\?/],
  ['undo persistence rollback',/state=JSON\.parse\(before\);return/],
  ['redo set values',/a\.redoSet=\{ex,set,kg:entry\.kg,reps:entry\.reps,rir:entry\.rir\}/],
+ ['restart workout command',/function restartWorkout\(\)/],
+ ['restart confirmation',/Ricominciare l’allenamento\?/],
+ ['restart rollback',/if\(!save\(\)\)\{state=JSON\.parse\(before\);return\}/],
+ ['restart restores loads',/for\(const entry of \[\.\.\.\(previous\.entries\|\|\[\]\)\]\.reverse\(\)\)/],
  ['statistics page',/function statsView\(\)/],
  ['Spotify integration',/const SPOTIFY_CLIENT_ID=/],
  ['launch splash',/launchIntro\(\)/]
