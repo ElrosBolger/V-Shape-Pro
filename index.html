@@ -224,7 +224,7 @@ function showSetError(message,field){const el=document.getElementById(field);doc
 function validWeight(raw){return /^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number(raw.replace(',','.'))>=0&&Number(raw.replace(',','.'))<=2000}
 function displayLoad(raw){const v=String(raw??'').trim();return validWeight(v)?v:''}
 
-function toggleAppMenu(){const m=document.getElementById('app-menu'),b=document.getElementById('menu-toggle');m.hidden=!m.hidden;b.setAttribute('aria-expanded',String(!m.hidden))}
+function toggleAppMenu(){const m=document.getElementById('app-menu'),b=document.getElementById('menu-toggle'),restart=document.getElementById('restart-workout-menu');if(restart)restart.hidden=!state?.active;m.hidden=!m.hidden;b.setAttribute('aria-expanded',String(!m.hidden))}
 function navigateMenu(fn){document.getElementById('app-menu').hidden=true;document.getElementById('menu-toggle').setAttribute('aria-expanded','false');fn();window.scrollTo(0,0)}
 const E=(name,sets,reps,rest,alt,tip,load='',rir='2',note='')=>({name,sets,reps,rest,alt,tip,load,rir,note});
 const days={
