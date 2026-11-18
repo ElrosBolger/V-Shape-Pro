@@ -13,6 +13,10 @@ const checks=[
  ['completed workout rollback',/if\(!save\(\)\)\{state=JSON\.parse\(beforeComplete\);return\}/],
  ['start persistence guard',/if\(!save\(\)\)\{state\.active=null;return\}resume\(\)/],
  ['rest persistence guard',/function endRest\(\)[\s\S]*?if\(!save\(\)\)/],
+ ['undo last set action',/function undoLastSet\(\)/],
+ ['undo confirmation',/Rifare l’ultima serie\?/],
+ ['undo persistence rollback',/state=JSON\.parse\(before\);return/],
+ ['redo set values',/a\.redoSet=\{ex,set,kg:entry\.kg,reps:entry\.reps,rir:entry\.rir\}/],
  ['statistics page',/function statsView\(\)/],
  ['Spotify integration',/const SPOTIFY_CLIENT_ID=/],
  ['launch splash',/launchIntro\(\)/]
