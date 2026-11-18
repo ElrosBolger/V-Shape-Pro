@@ -390,7 +390,7 @@ function statsView(){
  const entries=records.flatMap(r=>r.entries.map(e=>({...e,date:r.date,day:r.day})));
  const volume=entries.reduce((sum,e)=>{const kg=Number(String(e.kg).replace(',','.')),reps=Number(e.reps);return sum+(Number.isFinite(kg)&&kg>=0&&Number.isFinite(reps)&&reps>0?kg*reps:0)},0);
  const validDates=records.map(r=>new Date(r.date)).filter(d=>Number.isFinite(d.getTime()));
- const months=[...new Set(validDates.map(d=>d.toLocaleDateString('it-IT',{month:'long',year:'numeric})))];
+ const months=[...new Set(validDates.map(d=>d.toLocaleDateString('it-IT',{month:'long',year:'numeric'})))];
  const byExercise=new Map();
  for(const e of entries){const name=String(e.exercise||'').trim();const kg=Number(String(e.kg).replace(',','.'));if(!name||!Number.isFinite(kg)||kg<0)continue;const prev=byExercise.get(name);if(!prev||kg>prev.kg)byExercise.set(name,{kg,date:e.date});}
  const recordsHTML=[...byExercise.entries()].sort((a,b)=>a[0].localeCompare(b[0],'it')).map(([name,p])=>'<div class="exercise"><strong>'+esc(name)+'</strong><div class="small muted">Carico massimo registrato: '+esc(p.kg)+' kg</div></div>').join('');
