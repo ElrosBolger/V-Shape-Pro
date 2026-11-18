@@ -463,9 +463,17 @@ function restartWorkout(){
  const a=state.active;
  if(!a||!days[a.day]){appNotice('Non è presente una seduta da ricominciare.');return}
  appConfirm('Ricominciare da zero il Giorno '+a.day+'? Verranno cancellate soltanto le serie e i timer della seduta attuale. Il diario, i carichi storici e le statistiche resteranno invariati.',()=>{
-  const previous=state.active;
+  const before=JSON.stringify(state),previous=state.active;
+  // Undo this session's load updates in reverse order, preserving historical loads.
+  for(const entry of [...(previous.entries||[])].reverse()){
+   if(!Object.prototype.hasOwnProperty.call(entry,'priorLoad'))continue;
+   const index=days[previous.day].ex.findIndex(ex=>blockEx(ex)===entry.exercise);
+   if(index<0)continue;
+   const loadKey=`${previous.day}:${previous.week<=4?'1':'2'}:${index}`;
+   if(entry.priorLoad===null)delete state.loads[loadKey];else state.loads[loadKey]=entry.priorLoad;
+  }
   state.active={day:previous.day,week:previous.week,stage:'warm',warm:0,ex:0,set:0,entries:[],started:new Date().toISOString(),restEnd:null};
-  if(!save()){state.active=previous;return}
+  if(!save()){state=JSON.parse(before);return}
   clearInterval(ticker);clearInterval(warmTicker);restAlertedFor=null;resume();
  },'Ricominciare l’allenamento?','Sì, ricomincia',true);
 }
