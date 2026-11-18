@@ -477,7 +477,7 @@ function restartWorkout(){
   clearInterval(ticker);clearInterval(warmTicker);restAlertedFor=null;resume();
  },'Ricominciare l’allenamento?','Sì, ricomincia',true);
 }
-function abandon(){appConfirm('Le serie di questa seduta non saranno salvate. Vuoi davvero interrompere?',()=>{const previous=state.active;state.active=null;if(!save()){state.active=previous;return}spPauseOnFinish();clearInterval(ticker);home()},'Interrompere la seduta?','Interrompi seduta',true)}
+function abandon(){appConfirm('Le serie di questa seduta non saranno salvate. Vuoi davvero interrompere?',()=>{const previous=state.active;state.active=null;if(!save()){state.active=previous;return}spPauseOnFinish();clearInterval(ticker);clearInterval(warmTicker);home()},'Interrompere la seduta?','Interrompi seduta',true)}
 function historyView(){
  const list=[...state.records].reverse(),today=localDay(new Date());
  app.innerHTML=header('Diario allenamenti','Le tue sedute, ordinate dalla più recente.')+
